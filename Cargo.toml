@@ -1,0 +1,10 @@
+[package]
+name = "unquarantine"
+version = "0.1.0"
+description = "Unquarantine/decrypt/extract quarantined files."
+authors = ["Marirs <marirs@gmail.com>"]
+edition = "2021"
+
+[lib]
+name = "unquarantine"
+path = "src/lib.rs"
