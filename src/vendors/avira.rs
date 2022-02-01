@@ -1,4 +1,7 @@
-use crate::{Result, utils::{unpack_i32, bytearray_xor}};
+use crate::{
+    utils::{bytearray_xor, unpack_i32},
+    Result,
+};
 
 /// "Avira QUA Files
 pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {

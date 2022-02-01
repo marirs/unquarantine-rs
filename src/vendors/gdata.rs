@@ -1,4 +1,8 @@
-use crate::{Result, error::Error, utils::{unpack_i32, rc4_decrypt}};
+use crate::{
+    error::Error,
+    utils::{rc4_decrypt, unpack_i32},
+    Result,
+};
 
 lazy_static! {
     static ref KEY: Vec<i32> = vec![
@@ -29,7 +33,6 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     let newdata = rc4_decrypt(&mut ksa(), &mut data.to_vec());
     Ok(vec![newdata])
 }
-
 
 fn ksa() -> Vec<u8> {
     let mut sbox: Vec<u8> = (0..=255).collect();

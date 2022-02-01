@@ -1,4 +1,7 @@
-use crate::{Result, utils::{rc4_decrypt, unpack_i32}};
+use crate::{
+    utils::{rc4_decrypt, unpack_i32},
+    Result,
+};
 use md5::Digest;
 
 /// ASquared (EQF)

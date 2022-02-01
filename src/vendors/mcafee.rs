@@ -1,4 +1,4 @@
-use crate::{Result, error::Error};
+use crate::{error::Error, Result};
 
 /// McAfee Quarantine files (BUP) /full support for OLE format/
 pub fn unquarantine(_data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {

@@ -1,10 +1,12 @@
 use crate::Result;
 
-/// BullGuard Q Files
+/// QuickHeal <hash> files
 pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     let mut dec = vec![];
     for i in 0..data.len() {
-        dec.push(data[i] ^ if i % 2 == 0 { 0x00 } else { 0x3F });
+        let b1 = data[i];
+        let b2 = b1;
+        dec.push((b1 >> 4) | (b2 << 4));
     }
     Ok(vec![dec])
 }

@@ -1,6 +1,6 @@
 use crate::{
     error::Error,
-    utils::{unpack_i32, unpack_i64, bytearray_xor, blowfishit},
+    utils::{blowfishit, bytearray_xor, unpack_i32, unpack_i64},
     Result,
 };
 use std::convert::TryInto;

@@ -1,4 +1,8 @@
-use crate::{Result, error::Error, utils::{unpack_i32, unpack_i16}};
+use crate::{
+    error::Error,
+    utils::{unpack_i16, unpack_i32},
+    Result,
+};
 
 lazy_static! {
     static ref KEY: Vec<u8> = vec![

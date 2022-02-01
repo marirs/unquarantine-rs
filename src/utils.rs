@@ -1,4 +1,4 @@
-use crate::{Result, error::Error};
+use crate::{error::Error, Result};
 use std::convert::TryInto;
 use std::{fs::File, io::Read, path::Path};
 

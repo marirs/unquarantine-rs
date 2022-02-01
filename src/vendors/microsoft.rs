@@ -1,4 +1,8 @@
-use crate::{Result, error::Error, utils::{rc4_decrypt, bytearray_xor}};
+use crate::{
+    error::Error,
+    utils::{bytearray_xor, rc4_decrypt},
+    Result,
+};
 use std::convert::TryInto;
 
 lazy_static! {
@@ -56,7 +60,6 @@ pub fn mac_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 pub fn antimalware_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     Ok(vec![bytearray_xor(data.clone(), 0xff)])
 }
-
 
 fn ksa() -> Vec<u8> {
     let mut sbox: Vec<u8> = (0..=255).collect();

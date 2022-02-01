@@ -1,4 +1,4 @@
-use crate::{Result, utils::rc4_decrypt};
+use crate::{utils::rc4_decrypt, Result};
 
 /// Amiti (IFC)
 pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
