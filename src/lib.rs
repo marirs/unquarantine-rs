@@ -1,12 +1,15 @@
 #[macro_use]
 extern crate lazy_static;
 
+mod patterns;
 mod utils;
 mod vendors;
 
 pub mod error;
 use error::Error;
 pub type Result<T> = std::result::Result<T, error::Error>;
+
+use patterns::*;
 
 pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
     let ext = match std::path::Path::new(f).extension() {
@@ -109,18 +112,13 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
     if ext == "bup" && &data[..8] == &vec![0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1] {
         return Ok(("McAfee BUP Files", vendors::mcafee::unquarantine(&data)?));
     }
-    if regex::Regex::new(r"\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}-.{1,}")?
-        .is_match(f)
-    {
+    if MSE_PATTERN.is_match(f) {
         return Ok((
             "Microsoft Antimalware / Microsoft Security Essentials",
             vendors::microsoft::antimalware_unquarantine(&data)?,
         ));
     }
-    if regex::Regex::new(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")?
-        .is_match(f)
-        && data[..2] == vec![0x75, 0x6E]
-    {
+    if DEFAULT_FILE_PATTERN.is_match(f) && data[..2] == vec![0x75, 0x6E] {
         return Ok((
             "Microsoft Defender MAC",
             vendors::microsoft::mac_unquarantine(&data)?,
@@ -132,10 +130,7 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
             vendors::microsoft::pc_unquarantine(&data)?,
         ));
     }
-    if regex::Regex::new(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")?
-        .is_match(f)
-        && data[..2] == b"PK"[..]
-    {
+    if DEFAULT_FILE_PATTERN.is_match(f) && data[..2] == b"PK"[..] {
         return Ok((
             "Panda <GUID> Zip Files",
             vendors::panda::unquarantine(&data)?,
@@ -147,13 +142,8 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
             vendors::sentinelone::unquarantine(&data)?,
         ));
     }
-    if regex::Regex::new(r"-\d+")?.is_match(f) && data[..2] == b"PK"[..] {
-        if regex::Regex::new(
-            r"(^|[\/\\])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.dat",
-        )?
-        .is_match(f)
-            && data[..2] == b"PK"[..]
-        {
+    if NUM_PATTERN.is_match(f) && data[..2] == b"PK"[..] {
+        if GUID_DAT_PATTERN.is_match(f) && data[..2] == b"PK"[..] {
             return Ok((
                 "Total AV {GUID}.dat",
                 vendors::others::zip_unquarantine(&data)?,
@@ -176,9 +166,7 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
             vendors::symantec::qbd_unquarantine(&data)?,
         ));
     }
-    if regex::Regex::new(r"\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}")?
-        .is_match(f)
-    {
+    if GUID_PATTERN.is_match(f) {
         return Ok((
             "Symantec ccSubSDK {GUID} Files",
             vendors::symantec::cc_sub_sdk_unquarantine(&data)?,
@@ -208,7 +196,7 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
             vendors::trendmicro::unquarantine(&data)?,
         ));
     }
-    if regex::Regex::new(r"(^|[/\\])[0-9a-f]{32}")?.is_match(f) {
+    if QDB_PATTERN.is_match(f) {
         if f == "quarantine.db" {
             return Ok(("QuickHeal Files", vendors::quickheal::unquarantine(&data)?));
         }
