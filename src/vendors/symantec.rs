@@ -1,6 +1,7 @@
 use crate::{
     error::Error,
     utils::{blowfishit, bytearray_xor, unpack_i32, unpack_i64},
+    vendors::others,
     Result,
 };
 use std::convert::TryInto;
@@ -89,7 +90,7 @@ pub fn ep_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 }
 
 /// Symantec ccSubSdk files: {GUID} files and submissions.idx
-pub fn sym_cc_sub_sdk_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn cc_sub_sdk_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     Ok(vec![blowfishit(
         &data[32..].to_vec(),
         &data[16..32].to_vec(),
@@ -97,7 +98,7 @@ pub fn sym_cc_sub_sdk_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 }
 
 /// Symantec Quarantine Index files (QBI)
-pub fn sym_submissionsidx_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn idx_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     let data = &data[0x30..];
     let mut res = vec![];
     while &data[..4] == &vec![0x40, 0x99, 0xC6, 0x89] {
@@ -109,8 +110,13 @@ pub fn sym_submissionsidx_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     Ok(res)
 }
 
+/// Symantec Quarantine Index files (QBD)
+pub fn qbd_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+    others::data_unquarantine(data, 0xB3)
+}
+
 /// Symantec Quarantine files on MAC (quarantine.qtn)
-pub fn sym_qtn_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn qtn_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     let mut ress = vec![];
     let mut zip =
         zip::ZipArchive::new(std::io::BufReader::new(std::io::Cursor::new(data.to_vec())))?;

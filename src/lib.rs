@@ -65,7 +65,10 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
         return Ok(("Cisco AMP", vendors::cisco::amp_unquarantine(&data)?));
     }
     if ext == "cmc" && data[..23] == b"CMC Quarantined Malware"[..] {
-        return Ok(("CMC Antivirus CMC Files", vendors::cmc::unquarantine(&data)?));
+        return Ok((
+            "CMC Antivirus CMC Files",
+            vendors::cmc::unquarantine(&data)?,
+        ));
     }
     if ext == "vir" {
         return Ok(("ESafe VIR Files", vendors::esafe::unquarantine(&data)?));
@@ -170,7 +173,7 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
     if ext == "qbd" || ext == "qbi" {
         return Ok((
             "Symantec QBD and QBI Files",
-            vendors::others::data_unquarantine(&data, 0xB3)?,
+            vendors::symantec::qbd_unquarantine(&data)?,
         ));
     }
     if regex::Regex::new(r"\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}")?
@@ -178,19 +181,19 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
     {
         return Ok((
             "Symantec ccSubSDK {GUID} Files",
-            vendors::symantec::sym_cc_sub_sdk_unquarantine(&data)?,
+            vendors::symantec::cc_sub_sdk_unquarantine(&data)?,
         ));
     }
     if f == "submissions.idx" {
         return Ok((
             "Symantec ccSubSDK submissions.idx Files",
-            vendors::symantec::sym_submissionsidx_unquarantine(&data)?,
+            vendors::symantec::idx_unquarantine(&data)?,
         ));
     }
     if f == "quarantine.qtn" && data[..2] == b"PK"[..] {
         return Ok((
             "Symantec quarantine.qtn",
-            vendors::symantec::sym_qtn_unquarantine(&data)?,
+            vendors::symantec::qtn_unquarantine(&data)?,
         ));
     }
     if ext == "vbn" {
