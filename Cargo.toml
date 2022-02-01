@@ -1,10 +1,40 @@
 [package]
 name = "unquarantine"
 version = "0.1.0"
-description = "Unquarantine/decrypt/extract quarantined files."
 authors = ["Marirs <marirs@gmail.com>"]
+description = "Unquarantine/decrypt/extract quarantined files."
+keywords = ["unquarantine", "quarantine"]
+repository = ""
+exclude = ["data", "examples"]
 edition = "2021"
+
+[dependencies]
+base64 = "0.13.0"
+clap = { version = "3.0.7", features = ["cargo", "derive"]}
+crc = "2.1.0"
+inflate = "0.4.5"
+lazy_static = "1.4.0"
+maplit = "1.0.2"
+md-5 = "0.10.0"
+ole = "0.1.15"
+regex = "1.5.4"
+thiserror = "1.0.30"
+zip = "0.5.13"
 
 [lib]
 name = "unquarantine"
 path = "src/lib.rs"
+
+[[example]]
+name = "unquarantine"
+path = "examples/main.rs"
+
+[profile.dev]
+opt-level = 3
+
+[profile.release]
+codegen-units = 1
+debug-assertions = false
+debug = false
+opt-level = 3
+lto = true
