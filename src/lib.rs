@@ -6,17 +6,13 @@ mod utils;
 mod vendors;
 
 pub mod error;
-use error::Error;
 pub type Result<T> = std::result::Result<T, error::Error>;
 
 use patterns::*;
 
 pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
     let ext = match std::path::Path::new(f).extension() {
-        Some(s) => match s.to_str() {
-            Some(ss) => ss,
-            None => "",
-        },
+        Some(s) => s.to_str().unwrap_or(""),
         None => "",
     };
 
@@ -49,7 +45,7 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
         ));
     }
     if ext == ".q" {
-        if &data[..4] == &vec![0xCA, 0xFE, 0xBA, 0xBE] {
+        if data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
             let newdata = vendors::gdata::unquarantine(&data);
             match newdata {
                 Err(_) => {
@@ -109,7 +105,7 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
             vendors::malwarebytes::unquarantine(&data)?,
         ));
     }
-    if ext == "bup" && &data[..8] == &vec![0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1] {
+    if ext == "bup" && data[..8] == vec![0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1] {
         return Ok(("McAfee BUP Files", vendors::mcafee::unquarantine(&data)?));
     }
     if MSE_PATTERN.is_match(f) {
@@ -124,7 +120,7 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
             vendors::microsoft::mac_unquarantine(&data)?,
         ));
     }
-    if &data[..3] == &vec![0xD3, 0x45, 0xAD] || &data[..3] == &vec![0xD3, 0x0B, 0xAD] {
+    if data[..3] == vec![0xD3, 0x45, 0xAD] || data[..3] == vec![0xD3, 0x0B, 0xAD] {
         return Ok((
             "Microsoft Defender PC - partially supported (D3 45 C5 99 header)",
             vendors::microsoft::pc_unquarantine(&data)?,
@@ -219,5 +215,5 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
         return Ok(("xorff", s));
     }
 
-    Err(Error::UndefinedQuarantineMethod(f.to_string()))
+    Err(error::Error::UndefinedQuarantineMethod(f.to_string()))
 }

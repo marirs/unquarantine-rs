@@ -1,6 +1,6 @@
 use crate::{utils::unpack_i32, Result};
 
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let o2d = unpack_i32(&data[58..])? + 0x58;
     let data = &data[o2d as usize..data.len() - o2d as usize];
     let key = vec![
@@ -8,7 +8,7 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
         0x29,
     ];
     let mut dec = vec![];
-    let mut ki = 0 as usize;
+    let mut ki = 0_usize;
     for i in 0..data.len() {
         dec.push(data[i as usize] ^ key[ki]);
         ki += 1;

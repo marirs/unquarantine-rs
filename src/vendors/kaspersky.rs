@@ -6,8 +6,8 @@ lazy_static! {
 }
 
 /// Kaspersky KLQ files
-pub fn av_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
-    let mut data = data.clone();
+pub fn av_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
+    let mut data = data.to_owned();
     let magic = unpack_i32(&data)?;
     if magic != 0x42514C4B {
         return Err(Error::UndefinedQuarantineMethod("kav".to_string()));
@@ -47,7 +47,7 @@ pub fn av_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 }
 
 /// Kaspersky (System Watcher's <md5>.bin)
-pub fn system_watcher_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn system_watcher_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut newdata = vec![];
     for i in 0..data.len() {
         newdata.push(data[i] ^ SYSW_KEY[i % SYSW_KEY.len()]);

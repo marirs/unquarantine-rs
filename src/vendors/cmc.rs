@@ -3,9 +3,10 @@ use crate::{
     Result,
 };
 use zip::ZipArchive;
+use std::io::copy;
 
 /// CMC Antivirus (CMC)
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let _magic = &data[..32];
     let _ffv = unpack_i32(&data[0x20..])?;
     let _crc = unpack_i32(&data[0x28..])?;
@@ -21,7 +22,7 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     let _submitid = &data[0x40..0x40 + 16];
 
     let data = &data[0x200 + ofn + tnl..];
-    let buflen = unpack_i32(&data)? as usize;
+    let buflen = unpack_i32(data)? as usize;
     let data = &data[4..4 + buflen];
     let _meta_dec = bytearray_xor(data.to_vec(), 30);
     let mut dec = vec![];
@@ -31,7 +32,7 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
         let mut file = zip.by_index(i)?;
         let _s = file.size();
         let mut res: Vec<u8> = vec![];
-        std::io::copy(&mut file, &mut res)?;
+        copy(&mut file, &mut res)?;
         dec.push(res);
     }
     Ok(dec)

@@ -23,7 +23,7 @@ lazy_static! {
     ];
 }
 
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let o2d = unpack_i32(&data[4..])? + 0xDC;
     let data = &data[o2d as usize..];
     let mut newdata = vec![];

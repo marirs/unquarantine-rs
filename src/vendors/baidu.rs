@@ -12,7 +12,7 @@ lazy_static! {
 }
 
 /// Baidu QV Files
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let _magic = unpack_i32(data)?;
     let _time1 = unpack_i32(&data[4..])?;
     let _task = unpack_i32(&data[8..])?;
@@ -60,13 +60,13 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 
     let mut data = &data[4..];
     let mut dec = vec![];
-    while data.len() > 0 {
+    while !data.is_empty() {
         let lend = unpack_i16(data)? as usize;
         data = &data[2..];
         let dec2 = inflate::inflate_bytes(data).map_err(|e| Error::InflateError(e))?;
         let mut b = dec2[0];
         for i in 0..dec2.len() {
-            b = b ^ KEY[i % KEY.len()];
+            b ^= KEY[i % KEY.len()];
         }
         data = &data[lend..];
         dec.push(b);

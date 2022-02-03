@@ -2,7 +2,7 @@ use crate::{utils::bytearray_xor, Result};
 
 /// Zip Unqurantine:
 /// Total AV, SpyBOT
-pub fn zip_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn zip_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut ress = vec![];
     let mut zip =
         zip::ZipArchive::new(std::io::BufReader::new(std::io::Cursor::new(data.to_vec())))?;
@@ -18,14 +18,14 @@ pub fn zip_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 
 /// Data Unquarantine
 /// SUPERAntiSpyware, Symantec QBD and QBI Files
-pub fn data_unquarantine(data: &Vec<u8>, key: u8) -> Result<Vec<Vec<u8>>> {
+pub fn data_unquarantine(data: &[u8], key: u8) -> Result<Vec<Vec<u8>>> {
     let newdata = bytearray_xor(data.to_vec(), key);
     Ok(vec![newdata])
 }
 
 /// XORFF
 ///
-pub fn xorff_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
-    let qdata = bytearray_xor(data.clone(), 0xFF);
+pub fn xorff_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
+    let qdata = bytearray_xor(data.to_owned(), 0xFF);
     Ok(vec![qdata])
 }

@@ -29,8 +29,8 @@ lazy_static! {
 }
 
 /// Microsoft Defender PC - partially supported (D3 45 C5 99 header)
-pub fn pc_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
-    let mut data = data.clone();
+pub fn pc_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
+    let mut data = data.to_owned();
     let fsize = data.len();
     if fsize < 12 || data[0] != 0x0B || data[1] != 0xAD || data[2] != 0x00 {
         return Err(Error::UndefinedQuarantineMethod("mse".to_string()));
@@ -52,23 +52,24 @@ pub fn pc_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 }
 
 /// Microsoft Defender MAC
-pub fn mac_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
-    Ok(vec![bytearray_xor(data.clone(), 0x25)])
+pub fn mac_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
+    Ok(vec![bytearray_xor(data.to_owned(), 0x25)])
 }
 
 /// Microsoft Antimalware / Microsoft Security Essentials
-pub fn antimalware_unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
-    Ok(vec![bytearray_xor(data.clone(), 0xff)])
+pub fn antimalware_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
+    Ok(vec![bytearray_xor(data.to_owned(), 0xff)])
 }
 
 fn ksa() -> Vec<u8> {
     let mut sbox: Vec<u8> = (0..=255).collect();
-    let mut j = 0 as usize;
+    let mut j = 0_usize;
     for i in 0..256 {
         j = (j + sbox[i] as usize + KEY[i] as usize) % 256;
-        let tmp = sbox[i];
-        sbox[i] = sbox[j];
-        sbox[j] = tmp;
+        sbox.swap(i, j)
+        // let tmp = sbox[i];
+        // sbox[i] = sbox[j];
+        // sbox[j] = tmp;
     }
-    return sbox;
+    sbox
 }

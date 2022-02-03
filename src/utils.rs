@@ -32,20 +32,18 @@ pub fn bytearray_xor(mut data: Vec<u8>, key: u8) -> Vec<u8> {
     data
 }
 
-pub fn blowfishit(_data: &Vec<u8>, _key: &Vec<u8>) -> Result<Vec<u8>> {
+pub fn blowfishit(_data: &[u8], _key: &[u8]) -> Result<Vec<u8>> {
     Err(Error::NotImplementedError(file!(), line!()))
 }
 
 pub fn rc4_decrypt(sbox: &mut Vec<u8>, data: &mut Vec<u8>) -> Vec<u8> {
     let mut out = vec![0u8; data.len()];
-    let mut i = 0 as usize;
-    let mut j = 0 as usize;
+    let mut i = 0_usize;
+    let mut j = 0_usize;
     for (k, ch) in data.iter().enumerate() {
         i = (i + 1) % 256;
         j = (j + sbox[i] as usize) % 256;
-        let tmp = sbox[i];
-        sbox[i] = sbox[j];
-        sbox[j] = tmp;
+        sbox.swap(i, j);
         let val = sbox[(sbox[i] as usize + sbox[j] as usize) % 256];
         out[k] = val ^ ch;
     }

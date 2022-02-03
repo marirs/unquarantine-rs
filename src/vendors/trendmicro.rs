@@ -5,8 +5,8 @@ use crate::{
 };
 
 /// TrendMicro (Magic@0=A9 AC BD A7 which is a 'VSBX' string ^ 0xFF)
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
-    let mut data = bytearray_xor(data.clone(), 0xFF);
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
+    let mut data = bytearray_xor(data.to_owned(), 0xFF);
     let magic = unpack_i32(&data)?;
     let mut dataoffset = unpack_i32(&data[4..])? as usize;
     let numtags = unpack_i16(&data[8..])?;
@@ -23,7 +23,7 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     dataoffset += 10;
     let offset = 10;
     for _ in 0..numtags {
-        let (code, tagdata) = read_trend_tag(&data, offset)?;
+        let (code, tagdata) = read_tag(&data, offset)?;
         match code {
             6 => {
                 basekey = unpack_i32(&tagdata)?;
@@ -63,7 +63,7 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
     Ok(vec![data[dataoffset..].to_vec()])
 }
 
-fn read_trend_tag(data: &Vec<u8>, offset: usize) -> Result<(u8, Vec<u8>)> {
+fn read_tag(data: &[u8], offset: usize) -> Result<(u8, Vec<u8>)> {
     let code = data[offset];
     let length = unpack_i16(&data[offset + 1..])? as usize;
     Ok((code, data[offset + 3..offset + 3 + length].to_vec()))

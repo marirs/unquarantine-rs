@@ -1,7 +1,7 @@
 use crate::Result;
 
 /// BitDefender, Lavasoft AdAware, Total Defence BDQ Files
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut dec = vec![];
     let mut cl: u8 = 25;
     let mut dl: u8 = 43;

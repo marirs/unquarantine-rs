@@ -1,4 +1,6 @@
 use crate::{error::Error, utils::blowfishit, Result};
+use std::io::{BufReader, Cursor};
+use zip::ZipArchive;
 
 lazy_static! {
     static ref KEY: Vec<u8> = vec![
@@ -8,10 +10,9 @@ lazy_static! {
 }
 
 /// Panda <GUID> Zip files
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut ress = vec![];
-    let mut zip =
-        zip::ZipArchive::new(std::io::BufReader::new(std::io::Cursor::new(data.to_vec())))?;
+    let mut zip = ZipArchive::new(BufReader::new(Cursor::new(data.to_vec())))?;
 
     for i in 0..zip.len() {
         let mut file = zip.by_index(i)?;

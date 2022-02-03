@@ -5,7 +5,7 @@ use crate::{
 };
 
 /// K7 Antivirus (<md5>.QNT)
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let len = unpack_i32(&data[0x128..])? as usize;
     if len > data.len() {
         return Err(Error::UndefinedQuarantineMethod("k7".to_string()));

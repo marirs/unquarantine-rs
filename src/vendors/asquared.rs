@@ -5,7 +5,7 @@ use crate::{
 use md5::Digest;
 
 /// ASquared (EQF)
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let data = &data[0x1A..];
     let fno = unpack_i32(&data[0x14..])? as usize;
     let fnl = unpack_i32(&data[0x18..])? as usize;
@@ -25,12 +25,10 @@ fn ksa() -> Vec<u8> {
     hasher.update(b"{A4A1BFF9-301A-40D3-86D3-D1F29E413B28}");
     let key = hasher.finalize().to_vec();
     let mut sbox: Vec<u8> = (0..=255).collect();
-    let mut j = 0 as usize;
+    let mut j = 0_usize;
     for i in 0..256 {
         j = (j + sbox[i] as usize + key[i % key.len()] as usize) % 256;
-        let tmp = sbox[i];
-        sbox[i] = sbox[j];
-        sbox[j] = tmp;
+        sbox.swap(i, j)
     }
     sbox
 }

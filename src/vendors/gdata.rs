@@ -12,7 +12,7 @@ lazy_static! {
 }
 
 /// G-Data (Q) (Magic@0=0xCAFEBABE)
-pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
+pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let size = data.len();
     let hdr_len = unpack_i32(&data[4..])? as usize;
     if hdr_len > data.len() {
@@ -36,12 +36,13 @@ pub fn unquarantine(data: &Vec<u8>) -> Result<Vec<Vec<u8>>> {
 
 fn ksa() -> Vec<u8> {
     let mut sbox: Vec<u8> = (0..=255).collect();
-    let mut j = 0 as usize;
+    let mut j = 0_usize;
     for i in 0..256 {
         j = (j + sbox[i] as usize + KEY[i % KEY.len()] as usize) % 256;
-        let tmp = sbox[i];
-        sbox[i] = sbox[j];
-        sbox[j] = tmp;
+        sbox.swap(i, j);
+        // let tmp = sbox[i];
+        // sbox[i] = sbox[j];
+        // sbox[j] = tmp;
     }
     sbox
 }
