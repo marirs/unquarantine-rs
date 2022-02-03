@@ -1,5 +1,5 @@
 use crate::{error::Error, utils::blowfishit, Result};
-use std::io::{BufReader, Cursor};
+use std::io::{BufReader, Cursor, copy};
 use zip::ZipArchive;
 
 lazy_static! {
@@ -17,7 +17,7 @@ pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     for i in 0..zip.len() {
         let mut file = zip.by_index(i)?;
         let mut res: Vec<u8> = vec![];
-        std::io::copy(&mut file, &mut res)?;
+        copy(&mut file, &mut res)?;
         let dec = blowfishit(&res, &KEY)?;
         let dec2 = inflate::inflate_bytes(&dec).map_err(|e| Error::InflateError(e))?;
         ress.push(dec2);

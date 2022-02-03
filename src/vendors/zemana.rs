@@ -12,9 +12,6 @@ fn ksa() -> Vec<u8> {
     for i in 0..256 {
         j = (j + sbox[i] as usize + key[i % key.len()] as usize) % 256;
         sbox.swap(i, j)
-        // let tmp = sbox[i];
-        // sbox[i] = sbox[j];
-        // sbox[j] = tmp;
     }
     sbox
 }
