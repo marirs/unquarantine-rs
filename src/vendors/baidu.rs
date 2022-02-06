@@ -23,7 +23,7 @@ pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let data = &data[0x52..];
     let leng = unpack_i32(data)? as usize;
     if leng > data.len() {
-        return Err(Error::UndefinedQuarantineMethod("baidu".to_string()));
+        return Err(Error::CannotUnQuarantineFile("baidu".to_string()));
     }
     let mut path = data[4..4 + leng].to_vec();
     path.push(0);

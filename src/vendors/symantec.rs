@@ -12,7 +12,7 @@ pub fn ep_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let filesize = qdata.len();
     let mut dataoffset = unpack_i32(&qdata)?;
     if dataoffset != 0x1290 {
-        return Err(Error::UndefinedQuarantineMethod("sep".to_string()));
+        return Err(Error::CannotUnQuarantineFile("sep".to_string()));
     }
     let mut data = bytearray_xor(qdata, 0x5A);
     dataoffset += 0x28;

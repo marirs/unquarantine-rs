@@ -33,7 +33,7 @@ pub fn pc_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut data = data.to_owned();
     let fsize = data.len();
     if fsize < 12 || data[0] != 0x0B || data[1] != 0xAD || data[2] != 0x00 {
-        return Err(Error::UndefinedQuarantineMethod("mse".to_string()));
+        return Err(Error::CannotUnQuarantineFile("mse".to_string()));
     }
     let mut sbox = ksa();
     let outdata = rc4_decrypt(&mut sbox, &mut data);
@@ -45,7 +45,7 @@ pub fn pc_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let origlen = i32::from_le_bytes(*origlen_vec);
 
     if origlen + headerlen != fsize as i32 {
-        return Err(Error::UndefinedQuarantineMethod("mse".to_string()));
+        return Err(Error::CannotUnQuarantineFile("mse".to_string()));
     }
 
     Ok(vec![outdata[headerlen as usize..].to_vec()])

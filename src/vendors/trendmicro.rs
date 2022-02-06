@@ -12,13 +12,13 @@ pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let numtags = unpack_i16(&data[8..])?;
     if magic != 0x58425356 {
         // VSBX
-        return Err(Error::UndefinedQuarantineMethod("trend".to_string()));
+        return Err(Error::CannotUnQuarantineFile("trend".to_string()));
     }
     let mut basekey = 0x00000000;
     let mut encmethod = 0;
 
     if numtags > 15 {
-        return Err(Error::UndefinedQuarantineMethod("trend".to_string()));
+        return Err(Error::CannotUnQuarantineFile("trend".to_string()));
     }
     dataoffset += 10;
     let offset = 10;

@@ -303,7 +303,7 @@ impl<'a> UnQuarantine<'a> {
             });
         }
 
-        Err(error::Error::UndefinedQuarantineMethod(qf.to_string()))
+        Err(error::Error::CannotUnQuarantineFile(qf.to_string()))
     }
 
     pub fn get_vendor(&self) -> &str {

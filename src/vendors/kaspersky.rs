@@ -10,7 +10,7 @@ pub fn av_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut data = data.to_owned();
     let magic = unpack_i32(&data)?;
     if magic != 0x42514C4B {
-        return Err(Error::UndefinedQuarantineMethod("kav".to_string()));
+        return Err(Error::CannotUnQuarantineFile("kav".to_string()));
     }
     let fsize = data.len();
 
@@ -20,10 +20,10 @@ pub fn av_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let origlen = unpack_i32(&data[0x30..])?;
 
     if fsize < (headerlen + origlen + metalen) as usize {
-        return Err(Error::UndefinedQuarantineMethod("kav".to_string()));
+        return Err(Error::CannotUnQuarantineFile("kav".to_string()));
     }
     if metaoffset < headerlen + origlen {
-        return Err(Error::UndefinedQuarantineMethod("kav".to_string()));
+        return Err(Error::CannotUnQuarantineFile("kav".to_string()));
     }
 
     let mut curoffset = metaoffset as usize;

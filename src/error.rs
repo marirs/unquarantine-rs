@@ -20,6 +20,6 @@ pub enum Error {
     RegexError(#[from] regex::Error),
     #[error("Inflate error: {0}")]
     InflateError(String),
-    #[error("undefined quarantine method: {0}")]
-    UndefinedQuarantineMethod(String),
+    #[error("{0}: Cannot Un-quarantine file; are you sure its a quarantined file?")]
+    CannotUnQuarantineFile(String),
 }

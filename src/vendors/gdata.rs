@@ -16,16 +16,16 @@ pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let size = data.len();
     let hdr_len = unpack_i32(&data[4..])? as usize;
     if hdr_len > data.len() {
-        return Err(Error::UndefinedQuarantineMethod("gdata".to_string()));
+        return Err(Error::CannotUnQuarantineFile("gdata".to_string()));
     }
     let _hdr = &data[8..8 + hdr_len as usize];
     let data = &data[8 + hdr_len as usize..];
     if data[..4] != vec![0xBA, 0xAD, 0xF0, 0x0D] {
-        return Err(Error::UndefinedQuarantineMethod("gdata".to_string()));
+        return Err(Error::CannotUnQuarantineFile("gdata".to_string()));
     }
     let body_len = unpack_i32(&data[4..])? as usize;
     if body_len > size {
-        return Err(Error::UndefinedQuarantineMethod("gdata".to_string()));
+        return Err(Error::CannotUnQuarantineFile("gdata".to_string()));
     }
     let _body = &data[8..8 + body_len];
     let data = &data[8 + body_len as usize..];
