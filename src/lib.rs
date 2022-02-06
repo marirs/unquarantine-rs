@@ -5,6 +5,9 @@ mod patterns;
 mod utils;
 mod vendors;
 
+#[cfg(test)]
+mod tests;
+
 pub mod error;
 pub type Result<T> = std::result::Result<T, error::Error>;
 
