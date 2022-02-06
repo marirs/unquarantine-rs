@@ -44,21 +44,15 @@ pub fn unquarantine(f: &str) -> Result<(&str, Vec<Vec<u8>>)> {
             vendors::bitdefender::unquarantine(&data)?,
         ));
     }
-    if ext == ".q" {
-        if data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
-            let newdata = vendors::gdata::unquarantine(&data);
-            match newdata {
-                Err(_) => {
-                    return Ok((
-                        "BullGuard Q Files",
-                        vendors::bullguard::unquarantine(&data)?,
-                    ));
-                }
-                Ok(s) => {
-                    return Ok(("G-Data Q Files", s));
-                }
-            }
-        }
+    if ext == ".q" && data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
+        let newdata = vendors::gdata::unquarantine(&data);
+        return match newdata {
+            Err(_) => Ok((
+                "BullGuard Q Files",
+                vendors::bullguard::unquarantine(&data)?,
+            )),
+            Ok(s) => Ok(("G-Data Q Files", s)),
+        };
     }
     if ext.starts_with("qrt") {
         return Ok(("Cisco AMP", vendors::cisco::amp_unquarantine(&data)?));

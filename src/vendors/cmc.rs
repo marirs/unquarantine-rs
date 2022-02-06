@@ -2,8 +2,8 @@ use crate::{
     utils::{bytearray_xor, unpack_i16, unpack_i32},
     Result,
 };
+use std::io::{copy, BufReader, Cursor};
 use zip::ZipArchive;
-use std::io::copy;
 
 /// CMC Antivirus (CMC)
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
@@ -26,7 +26,7 @@ pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let data = &data[4..4 + buflen];
     let _meta_dec = bytearray_xor(data.to_vec(), 30);
     let mut dec = vec![];
-    let mut zip = ZipArchive::new(std::io::BufReader::new(std::io::Cursor::new(data.to_vec())))?;
+    let mut zip = ZipArchive::new(BufReader::new(Cursor::new(data.to_vec())))?;
 
     for i in 0..zip.len() {
         let mut file = zip.by_index(i)?;

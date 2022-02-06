@@ -1,5 +1,5 @@
 use crate::{error::Error, utils::blowfishit, Result};
-use std::io::{BufReader, Cursor, copy};
+use std::io::{copy, BufReader, Cursor};
 use zip::ZipArchive;
 
 lazy_static! {

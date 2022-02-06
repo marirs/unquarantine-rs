@@ -60,26 +60,22 @@ pub fn ep_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
                     }
                     bindata.extend(data[offset + 5..offset + 5 + binlen].to_vec());
                 }
-            } else {
-                if decode_next_container {
-                    extralen = 0;
-                    decode_next_container = false;
-                } else if codeval == 0x10 || codeval == 0x8 {
-                    if codeval == 0x8 {
-                        xor_next_container = true;
-                        let lastlen_vec: &[u8; 8] = data[offset + 5..offset + 5 + 8].try_into()?;
-                        lastlen = i64::from_le_bytes(*lastlen_vec);
-                    } else {
-                        xor_next_container = false;
-                        decode_next_container = true;
-                    }
+            } else if decode_next_container {
+                extralen = 0;
+                decode_next_container = false;
+            } else if codeval == 0x10 || codeval == 0x8 {
+                if codeval == 0x8 {
+                    xor_next_container = true;
+                    let lastlen_vec: &[u8; 8] = data[offset + 5..offset + 5 + 8].try_into()?;
+                    lastlen = i64::from_le_bytes(*lastlen_vec);
+                } else {
+                    xor_next_container = false;
+                    decode_next_container = true;
                 }
             }
-        } else if code == 4 {
-            if xor_next_container && lastlen == codeval as i64 {
-                binsize = codeval as usize;
-                has_header = false;
-            }
+        } else if code == 4 && xor_next_container && lastlen == codeval as i64 {
+            binsize = codeval as usize;
+            has_header = false;
         }
         offset += length + extralen;
         if offset == filesize {
