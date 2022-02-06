@@ -22,6 +22,6 @@ fn main() -> Result<(), Error> {
             .open(&format!("{}_{}", &cli.output_file, i))?;
         file.write_all(&b[i])?;
     }
-    println!("{}", n);
+    println!("unquarantied for: {}", n);
     std::process::exit(1)
 }
