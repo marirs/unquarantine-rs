@@ -19,7 +19,7 @@ pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
         let mut res: Vec<u8> = vec![];
         copy(&mut file, &mut res)?;
         let dec = blowfishit(&res, &KEY)?;
-        let dec2 = inflate::inflate_bytes(&dec).map_err(|e| Error::InflateError(e))?;
+        let dec2 = inflate::inflate_bytes(&dec).map_err(Error::InflateError)?;
         ress.push(dec2);
     }
     Ok(ress)

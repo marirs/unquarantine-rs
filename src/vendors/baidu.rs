@@ -63,7 +63,7 @@ pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     while !data.is_empty() {
         let lend = unpack_i16(data)? as usize;
         data = &data[2..];
-        let dec2 = inflate::inflate_bytes(data).map_err(|e| Error::InflateError(e))?;
+        let dec2 = inflate::inflate_bytes(data).map_err(Error::InflateError)?;
         let mut b = dec2[0];
         for i in 0..dec2.len() {
             b ^= KEY[i % KEY.len()];

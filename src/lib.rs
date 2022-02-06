@@ -155,7 +155,7 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::mcafee::unquarantine(&data)?,
             });
         }
-        if MSE_PATTERN.is_match(&qf) {
+        if MSE_PATTERN.is_match(qf) {
             return Ok(Self {
                 vendor: "Microsoft Antimalware / Microsoft Security Essentials",
                 unquarantined_buffer: vendors::microsoft::antimalware_unquarantine(&data)?,
@@ -185,8 +185,8 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::sentinelone::unquarantine(&data)?,
             });
         }
-        if NUM_PATTERN.is_match(&qf) && data[..2] == b"PK"[..] {
-            if GUID_DAT_PATTERN.is_match(&qf) && data[..2] == b"PK"[..] {
+        if NUM_PATTERN.is_match(qf) && data[..2] == b"PK"[..] {
+            if GUID_DAT_PATTERN.is_match(qf) && data[..2] == b"PK"[..] {
                 return Ok(Self {
                     vendor: "Total AV {GUID}.dat",
                     unquarantined_buffer: vendors::others::zip_unquarantine(&data)?,
