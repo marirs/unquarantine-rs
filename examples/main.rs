@@ -13,18 +13,18 @@ struct CliOpts {
 
 fn main() -> Result<(), Error> {
     let cli = CliOpts::parse();
-
     let result = UnQuarantine::from_file(&cli.input_file);
     match result {
         Ok(res) => {
-            for i in 0..res.unquarantined_buffer.len() {
+            let buff = res.get_unquarantined_buffer();
+            for i in 0..buff.len() {
                 let mut output_file = OpenOptions::new()
                     .write(true)
                     .create(true)
                     .open(&format!("{}_{}", &cli.output_file, i))?;
-                output_file.write_all(&res.unquarantined_buffer[i])?;
+                output_file.write_all(&buff[i])?;
             }
-            println!("unquarantied for: {}", res.vendor);
+            println!("unquarantied for: {}", res.get_vendor());
         }
         Err(e) => println!("Error: {}", e),
     }

@@ -1,6 +1,6 @@
 [package]
 name = "unquarantine"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Marirs <marirs@gmail.com>"]
 description = "Unquarantine/decrypt/extract quarantined files."
 keywords = ["unquarantine", "quarantine"]
@@ -17,7 +17,6 @@ lazy_static = "1.4.0"
 maplit = "1.0.2"
 md-5 = "0.10.0"
 regex = "1.5.4"
-serde = { version = "1.0.136", features = ["derive"] }
 thiserror = "1.0.30"
 zip = "0.5.13"
 

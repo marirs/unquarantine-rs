@@ -9,15 +9,14 @@ pub mod error;
 pub type Result<T> = std::result::Result<T, error::Error>;
 
 use patterns::*;
-use serde::Deserialize;
 use std::{ffi::OsStr, path::Path};
 
-#[derive(Deserialize, Clone)]
+#[derive(Clone)]
 pub struct UnQuarantine<'a> {
     /// The detected Vendor of the quarantined file
-    pub vendor: &'a str,
+    vendor: &'a str,
     /// The buffer to save as unquarantined file
-    pub unquarantined_buffer: Vec<Vec<u8>>,
+    unquarantined_buffer: Vec<Vec<u8>>,
 }
 
 impl<'a> UnQuarantine<'a> {
@@ -290,5 +289,15 @@ impl<'a> UnQuarantine<'a> {
         }
 
         Err(error::Error::UndefinedQuarantineMethod(qf.to_string()))
+    }
+
+    pub fn get_vendor(&self) -> &str {
+        //! Gets the Vendor String of the Quarantined File
+        self.vendor
+    }
+
+    pub fn get_unquarantined_buffer(&self) -> Vec<Vec<u8>> {
+        //! Gets the UnQuarantined Buffer for the quarantined file
+        self.unquarantined_buffer.to_owned()
     }
 }
