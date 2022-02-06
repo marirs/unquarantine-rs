@@ -10,7 +10,7 @@ pub type Result<T> = std::result::Result<T, error::Error>;
 
 use patterns::*;
 use serde::Deserialize;
-use std::{path::Path, ffi::OsStr};
+use std::{ffi::OsStr, path::Path};
 
 #[derive(Deserialize, Clone)]
 pub struct UnQuarantine<'a> {
@@ -68,18 +68,14 @@ impl<'a> UnQuarantine<'a> {
         if file_extension == ".q" && data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
             let newdata = vendors::gdata::unquarantine(&data);
             return match newdata {
-                Err(_) => {
-                    Ok(Self {
-                        vendor: "BullGuard Q Files",
-                        unquarantined_buffer: vendors::bullguard::unquarantine(&data)?,
-                    })
-                }
-                Ok(s) => {
-                    Ok(Self {
-                        vendor: "G-Data Q Files",
-                        unquarantined_buffer: s,
-                    })
-                }
+                Err(_) => Ok(Self {
+                    vendor: "BullGuard Q Files",
+                    unquarantined_buffer: vendors::bullguard::unquarantine(&data)?,
+                }),
+                Ok(s) => Ok(Self {
+                    vendor: "G-Data Q Files",
+                    unquarantined_buffer: s,
+                }),
             };
         }
         if file_extension.starts_with("qrt") {
@@ -142,7 +138,10 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::lumension::unquarantine(&data)?,
             });
         }
-        if file_extension == "quar" || file_extension == "data" {
+        if file_extension == "quar"
+            || file_extension == "data"
+            || qf.to_lowercase().ends_with("data")
+        {
             return Ok(Self {
                 vendor: "MalwareBytes DATA and QUAR Files",
                 unquarantined_buffer: vendors::malwarebytes::unquarantine(&data)?,
@@ -273,7 +272,13 @@ impl<'a> UnQuarantine<'a> {
         }
         if let Ok(s) = vendors::microsoft::pc_unquarantine(&data) {
             return Ok(Self {
-                vendor: "Microsoft Security Essentials (PC)",
+                vendor: "Microsoft Windows Defender (PC)",
+                unquarantined_buffer: s,
+            });
+        }
+        if let Ok(s) = vendors::vipre::unquarantine(&data) {
+            return Ok(Self {
+                vendor: "Vipre <GUID>_ENC2 Files",
                 unquarantined_buffer: s,
             });
         }

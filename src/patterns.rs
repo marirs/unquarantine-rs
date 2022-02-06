@@ -12,4 +12,6 @@ lazy_static! {
         Regex::new(&[r"\{", &FILE_PATTERN, r"\}"].join("")).unwrap();
     pub static ref GUID_DAT_PATTERN: Regex =
         Regex::new(&[r"(^|[\/\\])", &FILE_PATTERN, r"\.dat"].join("")).unwrap();
+    pub static ref VIPRE_PATTERN: Regex =
+        Regex::new(&[r"\{", &FILE_PATTERN, r"\}_ENC2$"].join("")).unwrap();
 }

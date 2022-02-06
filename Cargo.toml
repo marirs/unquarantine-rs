@@ -1,6 +1,6 @@
 [package]
 name = "unquarantine"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Marirs <marirs@gmail.com>"]
 description = "Unquarantine/decrypt/extract quarantined files."
 keywords = ["unquarantine", "quarantine"]
