@@ -15,13 +15,21 @@ use std::{ffi::OsStr, path::Path};
 pub struct UnQuarantine<'a> {
     /// The detected Vendor of the quarantined file
     vendor: &'a str,
-    /// The buffer to save as unquarantined file
+    /// The buffer to save as restored file
     unquarantined_buffer: Vec<Vec<u8>>,
 }
 
 impl<'a> UnQuarantine<'a> {
     pub fn from_file(qf: &str) -> Result<Self> {
         //! Unquarantine a given quarantined file into its original file
+        //!
+        //! ## Example Usage
+        //! ```rust
+        //! use unquarantine::UnQuarantine;
+        //!
+        //! let result = UnQuarantine::from_file("data/99E865BA2BBCED427E8CB4785CCE58DDCCCE8337");
+        //! assert!(result.is_ok());
+        //! ```
         let file_extension = Path::new(qf)
             .extension()
             .and_then(OsStr::to_str)
@@ -34,7 +42,7 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::ahnlab::unquarantine(&data)?,
             });
         }
-        if file_extension == "eqf" {
+        if file_extension.eq_ignore_ascii_case("eqf") {
             return Ok(Self {
                 vendor: "ASquared EQF Files",
                 unquarantined_buffer: vendors::asquared::unquarantine(&data)?,
@@ -46,25 +54,25 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::avast::unquarantine(&data)?,
             });
         }
-        if file_extension == "qua" || data[..11] == b"AntiVir Qua"[..] {
+        if file_extension.eq_ignore_ascii_case("qua") || data[..11] == b"AntiVir Qua"[..] {
             return Ok(Self {
                 vendor: "Avira QUA Files",
                 unquarantined_buffer: vendors::avira::unquarantine(&data)?,
             });
         }
-        if file_extension == "qv" {
+        if file_extension.eq_ignore_ascii_case("qv") {
             return Ok(Self {
                 vendor: "Baidu QV Files",
                 unquarantined_buffer: vendors::baidu::unquarantine(&data)?,
             });
         }
-        if file_extension == ".bdq" {
+        if file_extension.eq_ignore_ascii_case(".bdq") {
             return Ok(Self {
                 vendor: "BitDefender/Lavasoft AdAware/Total Defence: BDQ Files",
                 unquarantined_buffer: vendors::bitdefender::unquarantine(&data)?,
             });
         }
-        if file_extension == ".q" && data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
+        if file_extension.eq_ignore_ascii_case(".q") && data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
             let newdata = vendors::gdata::unquarantine(&data);
             return match newdata {
                 Err(_) => Ok(Self {
@@ -83,62 +91,64 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::cisco::amp_unquarantine(&data)?,
             });
         }
-        if file_extension == "cmc" && data[..23] == b"CMC Quarantined Malware"[..] {
+        if file_extension.eq_ignore_ascii_case("cmc")
+            && data[..23] == b"CMC Quarantined Malware"[..]
+        {
             return Ok(Self {
                 vendor: "CMC Antivirus CMC Files",
                 unquarantined_buffer: vendors::cmc::unquarantine(&data)?,
             });
         }
-        if file_extension == "vir" {
+        if file_extension.eq_ignore_ascii_case("vir") {
             return Ok(Self {
                 vendor: "ESafe VIR Files",
                 unquarantined_buffer: vendors::esafe::unquarantine(&data)?,
             });
         }
-        if file_extension == "ifc" {
+        if file_extension.eq_ignore_ascii_case("ifc") {
             return Ok(Self {
                 vendor: "Amiti IFC Files",
                 unquarantined_buffer: vendors::amiti::unquarantine(&data)?,
             });
         }
-        if file_extension == "nqf" {
+        if file_extension.eq_ignore_ascii_case("nqf") {
             return Ok(Self {
                 vendor: "ESET NQF Files",
                 unquarantined_buffer: vendors::eset::unquarantine(&data)?,
             });
         }
-        if file_extension == "tmp" || data[..3] == b"KSS"[..] {
+        if file_extension.eq_ignore_ascii_case("tmp") || data[..3] == b"KSS"[..] {
             return Ok(Self {
                 vendor: "F-Prot TMP Files",
                 unquarantined_buffer: vendors::fprot::unquarantine(&data)?,
             });
         }
-        if file_extension == "klq" || data[..4] == b"KLQB"[..] {
+        if file_extension.eq_ignore_ascii_case("klq") || data[..4] == b"KLQB"[..] {
             return Ok(Self {
                 vendor: "Kaspersky KLQ files",
                 unquarantined_buffer: vendors::kaspersky::av_unquarantine(&data)?,
             });
         }
-        if file_extension == "QNT" {
+        if file_extension.eq_ignore_ascii_case("QNT") {
             return Ok(Self {
                 vendor: "K7 QNT files",
                 unquarantined_buffer: vendors::k7::unquarantine(&data)?,
             });
         }
-        if file_extension == "bin" {
+        if file_extension.eq_ignore_ascii_case("bin") {
             return Ok(Self {
                 vendor: "Kaspersky System Watcher files",
                 unquarantined_buffer: vendors::kaspersky::system_watcher_unquarantine(&data)?,
             });
         }
-        if file_extension == "lqf" {
+        if file_extension.eq_ignore_ascii_case("lqf") {
             return Ok(Self {
                 vendor: "Lumension LEMSS",
                 unquarantined_buffer: vendors::lumension::unquarantine(&data)?,
             });
         }
-        if file_extension == "quar"
-            || file_extension == "data"
+        if file_extension.eq_ignore_ascii_case("quar")
+            || file_extension.eq_ignore_ascii_case("data")
             || qf.to_lowercase().ends_with("data")
         {
             return Ok(Self {
@@ -146,7 +156,7 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::malwarebytes::unquarantine(&data)?,
             });
         }
-        if file_extension == "bup"
+        if file_extension.eq_ignore_ascii_case("bup")
             && data[..8] == vec![0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]
         {
             return Ok(Self {
@@ -178,7 +188,7 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::panda::unquarantine(&data)?,
             });
         }
-        if file_extension == "mal" {
+        if file_extension.eq_ignore_ascii_case("mal") {
             return Ok(Self {
                 vendor: "Sentinel One MAL files",
                 unquarantined_buffer: vendors::sentinelone::unquarantine(&data)?,
@@ -196,13 +206,14 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::others::zip_unquarantine(&data)?,
             });
         }
-        if file_extension == "sdb" {
+        if file_extension.eq_ignore_ascii_case("sdb") {
             return Ok(Self {
                 vendor: "SUPERAntiSpyware (SDB)",
                 unquarantined_buffer: vendors::others::data_unquarantine(&data, 0xED)?,
             });
         }
-        if file_extension == "qbd" || file_extension == "qbi" {
+        if file_extension.eq_ignore_ascii_case("qbd") || file_extension.eq_ignore_ascii_case("qbi")
+        {
             return Ok(Self {
                 vendor: "Symantec QBD and QBI Files",
                 unquarantined_buffer: vendors::symantec::qbd_unquarantine(&data)?,
@@ -214,19 +225,19 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::symantec::cc_sub_sdk_unquarantine(&data)?,
             });
         }
-        if qf == "submissions.idx" {
+        if qf.eq_ignore_ascii_case("submissions.idx") {
             return Ok(Self {
                 vendor: "Symantec ccSubSDK submissions.idx Files",
                 unquarantined_buffer: vendors::symantec::idx_unquarantine(&data)?,
             });
         }
-        if qf == "quarantine.qtn" && data[..2] == b"PK"[..] {
+        if qf.eq_ignore_ascii_case("quarantine.qtn") && data[..2] == b"PK"[..] {
             return Ok(Self {
                 vendor: "Symantec quarantine.qtn",
                 unquarantined_buffer: vendors::symantec::qtn_unquarantine(&data)?,
             });
         }
-        if file_extension == "vbn" {
+        if file_extension.eq_ignore_ascii_case("vbn") {
             return Ok(Self {
                 vendor: "Symantec VBN Files",
                 unquarantined_buffer: vendors::symantec::ep_unquarantine(&data)?,
@@ -239,7 +250,7 @@ impl<'a> UnQuarantine<'a> {
             });
         }
         if QDB_PATTERN.is_match(qf) {
-            if qf == "quarantine.db" {
+            if qf.eq_ignore_ascii_case("quarantine.db") {
                 return Ok(Self {
                     vendor: "QuickHeal Files",
                     unquarantined_buffer: vendors::quickheal::unquarantine(&data)?,
@@ -293,11 +304,33 @@ impl<'a> UnQuarantine<'a> {
 
     pub fn get_vendor(&self) -> &str {
         //! Gets the Vendor String of the Quarantined File
+        //!
+        //! ## Example Usage
+        //! ```rust
+        //! use unquarantine::UnQuarantine;
+        //!
+        //! let result = UnQuarantine::from_file("data/99E865BA2BBCED427E8CB4785CCE58DDCCCE8337");
+        //! assert!(result.is_ok());
+        //! let result = result.unwrap();
+        //! let vendor = result.get_vendor();
+        //! assert_eq!(vendor, "Microsoft Windows Defender (PC)");
+        //! ```
         self.vendor
     }
 
     pub fn get_unquarantined_buffer(&self) -> Vec<Vec<u8>> {
         //! Gets the UnQuarantined Buffer for the quarantined file
+        //!
+        //! ## Example Usage
+        //! ```rust
+        //! use unquarantine::UnQuarantine;
+        //!
+        //! let result = UnQuarantine::from_file("data/99E865BA2BBCED427E8CB4785CCE58DDCCCE8337");
+        //! assert!(result.is_ok());
+        //! let result = result.unwrap();
+        //! let unquarantine_buffer = result.get_unquarantined_buffer();
+        //! assert!(!unquarantine_buffer.is_empty())
+        //! ```
         self.unquarantined_buffer.to_owned()
     }
 }
