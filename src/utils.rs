@@ -1,12 +1,18 @@
 use crate::{error::Error, Result};
-use std::convert::TryInto;
-use std::{fs::File, io::Read, path::Path};
+use std::{
+    convert::TryInto,
+    fs::File,
+    io::{BufReader, Read},
+    path::Path,
+};
 
 pub fn read_file<P: AsRef<Path>>(file: P) -> Result<Vec<u8>> {
     let f = File::open(file)?;
-    let mut reader = std::io::BufReader::new(f);
     let mut buffer = Vec::new();
-    reader.read_to_end(&mut buffer)?;
+    {
+        let mut reader = BufReader::new(f);
+        reader.read_to_end(&mut buffer)?;
+    }
     Ok(buffer)
 }
 
