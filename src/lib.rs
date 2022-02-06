@@ -34,8 +34,9 @@ impl<'a> UnQuarantine<'a> {
             .extension()
             .and_then(OsStr::to_str)
             .unwrap_or_default();
-
         let data = utils::read_file(&qf)?;
+
+        // Start of Checks
         if file_extension == "v3b" || data[..16] == b"AhnLab Inc. 2006"[..] {
             return Ok(Self {
                 vendor: "AhnLab V3B files",
