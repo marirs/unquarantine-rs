@@ -18,6 +18,7 @@ use patterns::*;
 use std::{ffi::OsStr, path::Path};
 
 /// This crate attempts to decrypt/restore/un-quarantine files from various AV / security products.
+/// When successful - it returns the Vendor and the file buffer.  
 /// The below is a comprehensive list of vendors it tries to restore quarantined files!
 /// * AhnLab (V3B)
 /// * Amiti (IFC)
