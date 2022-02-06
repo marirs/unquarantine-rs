@@ -1,5 +1,5 @@
 use clap::Parser;
-use std::{fs::OpenOptions, io::Write, process::exit};
+use std::{fs::OpenOptions, io::Write};
 use unquarantine::{error::Error, UnQuarantine};
 
 #[derive(Parser, Debug)]
