@@ -85,7 +85,7 @@ impl<'a> UnQuarantine<'a> {
                 }),
             };
         }
-        if file_extension.starts_with("qrt") {
+        if file_extension.to_lowercase().starts_with("qrt") {
             return Ok(Self {
                 vendor: "Cisco AMP",
                 unquarantined_buffer: vendors::cisco::amp_unquarantine(&data)?,
