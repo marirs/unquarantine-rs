@@ -210,7 +210,7 @@ impl<'a> UnQuarantine<'a> {
         {
             return Ok(Self {
                 vendor: "McAfee BUP Files",
-                unquarantined_buffer: vendors::mcafee::unquarantine(&data)?,
+                unquarantined_buffer: vendors::mcafee::unquarantine(qf)?,
             });
         }
         if MSE_PATTERN.is_match(qf) {

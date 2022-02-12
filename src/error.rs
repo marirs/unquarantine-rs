@@ -22,4 +22,6 @@ pub enum Error {
     InflateError(String),
     #[error("{0}: Cannot Un-quarantine file; are you sure its a quarantined file?")]
     CannotUnQuarantineFile(String),
+    #[error("Ole file error: {0}")]
+    OleError(#[from] ole::error::Error),
 }
