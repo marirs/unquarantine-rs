@@ -23,4 +23,3 @@ fn decrypt_bup_string(bup_data: Vec<u8>) -> String {
 fn decrypt_bup_bytes(bup_data: Vec<u8>) -> Vec<u8> {
     bup_data.iter().map(|byte| byte ^ 0x6A).collect()
 }
-
