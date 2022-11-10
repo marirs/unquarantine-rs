@@ -26,7 +26,7 @@ fn main() -> Result<(), Error> {
             }
             println!("unquarantied for: {}", res.get_vendor());
         }
-        Err(e) => println!("Error: {}", e),
+        Err(e) => println!("Error: {:?}", e),
     }
 
     Ok(())

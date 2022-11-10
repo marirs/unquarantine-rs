@@ -3,16 +3,15 @@ use ole::OleFile;
 
 /// McAfee Quarantine files (BUP) /full support for OLE format/
 pub fn unquarantine(file: &str) -> Result<Vec<Vec<u8>>> {
-    let mut res = OleFile::from_file_blocking(file)?;
-
+    let res = OleFile::from_file_blocking(file)?;
     // Read File
-    let data = res.open_stream("File_0")?;
+    let data = res.open_stream(&["File_0"])?;
     let file_data = decrypt_bup_bytes(data);
 
     // Read File String
-    let data = res.open_stream("Details")?;
+    let data = res.open_stream(&["Details"])?;
     let file_str = decrypt_bup_string(data);
-
+   
     Ok(vec![file_str.as_bytes().to_vec(), file_data])
 }
 
