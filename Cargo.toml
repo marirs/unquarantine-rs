@@ -12,6 +12,7 @@ edition = "2021"
 base64 = "0.13.0"
 clap = { version = "3.0.7", features = ["cargo", "derive"]}
 crc = "2.1.0"
+rust-crypto = "0.2.36"
 inflate = "0.4.5"
 lazy_static = "1.4.0"
 maplit = "1.0.2"

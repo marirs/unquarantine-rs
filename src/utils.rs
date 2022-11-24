@@ -1,10 +1,7 @@
-use crate::{error::Error, Result};
-use std::{
-    convert::TryInto,
-    fs::File,
-    io::{BufReader, Read},
-    path::Path,
-};
+use crate::Result;
+use std::{convert::TryInto, fs::File, io::{BufReader, Read}, path::Path, vec};
+use crypto::blowfish::Blowfish;
+use crypto::symmetriccipher::BlockDecryptor;
 
 pub fn read_file<P: AsRef<Path>>(file: P) -> Result<Vec<u8>> {
     let f = File::open(file)?;
@@ -39,7 +36,10 @@ pub fn bytearray_xor(mut data: Vec<u8>, key: u8) -> Vec<u8> {
 }
 
 pub fn blowfishit(_data: &[u8], _key: &[u8]) -> Result<Vec<u8>> {
-    Err(Error::NotImplementedError(file!(), line!()))
+    let state = Blowfish::new(_key);
+    let mut output = Vec::new();
+    state.decrypt_block(_data, &mut output[..]);
+    Ok(output.to_vec())
 }
 
 pub fn rc4_decrypt(sbox: &mut Vec<u8>, data: &mut Vec<u8>) -> Vec<u8> {
