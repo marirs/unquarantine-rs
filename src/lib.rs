@@ -352,47 +352,6 @@ impl<'a> UnQuarantine<'a> {
         Err(Error::CannotUnQuarantineFile(qf.to_string()))
     }
     
-    pub fn from_directory(dir: &str) -> Result<Vec<Self>> {
-        //! Unquarantine quarantined files within the specified directory into the original files.
-        //!
-        //! ## Example Usage
-        //! ```rust
-        //! use unquarantine::UnQuarantine;
-        //!
-        //! let result = UnQuarantine::from_directory("data/");
-        //! assert!(result.is_ok());
-        //! ```
-        let directory = Path::new(dir);
-        let mut results = Vec::new();
-        if directory.is_dir() {
-            let dir_entries = match directory.read_dir() {
-                Ok(t) => t,
-                Err(t) => return Err(Error::IoError(t))
-            };
-            for entry in dir_entries {
-                if let Ok(entry) = entry {
-                    let file_path = entry.path().display().to_string();
-                    if entry.path().is_file() {
-                        match UnQuarantine::from_file(file_path.as_str()) {
-                            Ok(unquarantine) => {
-                                results .push(unquarantine);
-                            },
-                            _ => return Err(Error::CannotUnQuarantineFile(file_path))
-                        }
-                    } else {
-                        match UnQuarantine::from_directory(file_path.as_str()) {
-                            Ok(mut unquarantine) => {
-                                results.append(&mut unquarantine);
-                            },
-                            _ => return Err(Error::CannotUnQuarantineFile(file_path))
-                        }
-                    }
-                }
-            }
-        }
-        Ok(results)
-    }
-
     pub fn get_vendor(&self) -> &str {
         //! Gets the Vendor String of the Quarantined File
         //!
