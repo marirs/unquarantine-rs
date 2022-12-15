@@ -1,14 +1,14 @@
 use crate::{utils::bytearray_xor, Result};
 
-/// Zip Unqurantine:
+/// Zip Unquarantine:
 /// Total AV, SpyBOT
-pub fn zip_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
+pub fn zip_unquarantine(data: &[u8], password: Option<&[u8]>) -> Result<Vec<Vec<u8>>> {
     let mut ress = vec![];
     let mut zip =
-        zip::ZipArchive::new(std::io::BufReader::new(std::io::Cursor::new(data.to_vec())))?;
+       zip::ZipArchive::new(std::io::BufReader::new(std::io::Cursor::new(data.to_vec())))?;
 
     for i in 0..zip.len() {
-        let mut file = zip.by_index(i)?;
+        let mut file = zip.by_index_decrypt(i, password.unwrap())?.unwrap();
         let mut res: Vec<u8> = vec![];
         std::io::copy(&mut file, &mut res)?;
         ress.push(res);

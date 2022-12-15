@@ -12,7 +12,7 @@ mod vendors;
 mod tests;
 
 pub mod error;
-pub type Result<T> = std::result::Result<T, error::Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 use patterns::*;
 use std::{ffi::OsStr, path::Path};
@@ -116,13 +116,13 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::baidu::unquarantine(&data)?,
             });
         }
-        if file_extension.eq_ignore_ascii_case(".bdq") {
+        if file_extension.eq_ignore_ascii_case("bdq") {
             return Ok(Self {
                 vendor: "BitDefender/Lavasoft AdAware/Total Defence: BDQ Files",
                 unquarantined_buffer: vendors::bitdefender::unquarantine(&data)?,
             });
         }
-        if file_extension.eq_ignore_ascii_case(".q") && data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
+        if file_extension.eq_ignore_ascii_case("q") && data[..4] == vec![0xCA, 0xFE, 0xBA, 0xBE] {
             let newdata = vendors::gdata::unquarantine(&data);
             return match newdata {
                 Err(_) => Ok(Self {
@@ -226,7 +226,7 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::microsoft::mac_unquarantine(&data)?,
             });
         }
-        if data[..3] == vec![0xD3, 0x45, 0xAD] || data[..3] == vec![0xD3, 0x0B, 0xAD] {
+        if data[..2] == vec![0xD3, 0x45] || data[..2] == vec![0x0B, 0xAD] {
             return Ok(Self {
                 vendor: "Microsoft Defender PC - partially supported (D3 45 C5 99 header)",
                 unquarantined_buffer: vendors::microsoft::pc_unquarantine(&data)?,
@@ -248,12 +248,12 @@ impl<'a> UnQuarantine<'a> {
             if GUID_DAT_PATTERN.is_match(qf) && data[..2] == b"PK"[..] {
                 return Ok(Self {
                     vendor: "Total AV {GUID}.dat",
-                    unquarantined_buffer: vendors::others::zip_unquarantine(&data)?,
+                    unquarantined_buffer: vendors::others::zip_unquarantine(&data, Some(b"infected"))?,
                 });
             }
             return Ok(Self {
                 vendor: "Spybot - Search & Destroy 2 Zip Files",
-                unquarantined_buffer: vendors::others::zip_unquarantine(&data)?,
+                unquarantined_buffer: vendors::others::zip_unquarantine(&data, Some(b"recovery"))?,
             });
         }
         if file_extension.eq_ignore_ascii_case("sdb") {
@@ -275,7 +275,7 @@ impl<'a> UnQuarantine<'a> {
                 unquarantined_buffer: vendors::symantec::cc_sub_sdk_unquarantine(&data)?,
             });
         }
-        if qf.eq_ignore_ascii_case("submissions.idx") {
+        if qf.to_ascii_lowercase().ends_with("submissions.idx") {
             return Ok(Self {
                 vendor: "Symantec ccSubSDK submissions.idx Files",
                 unquarantined_buffer: vendors::symantec::idx_unquarantine(&data)?,
@@ -349,7 +349,7 @@ impl<'a> UnQuarantine<'a> {
             });
         }
 
-        Err(error::Error::CannotUnQuarantineFile(qf.to_string()))
+        Err(Error::CannotUnQuarantineFile(qf.to_string()))
     }
     
     pub fn from_directory(dir: &str) -> Result<Vec<Self>> {
