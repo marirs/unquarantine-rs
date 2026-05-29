@@ -33,11 +33,11 @@ struct Cli {
 fn main() -> ExitCode {
     let cli = Cli::parse();
 
-    if let Some(dir) = &cli.outdir {
-        if let Err(e) = fs::create_dir_all(dir) {
-            eprintln!("[!] cannot create output directory {}: {e}", dir.display());
-            return ExitCode::FAILURE;
-        }
+    if let Some(dir) = &cli.outdir
+        && let Err(e) = fs::create_dir_all(dir)
+    {
+        eprintln!("[!] cannot create output directory {}: {e}", dir.display());
+        return ExitCode::FAILURE;
     }
 
     let mut all_ok = true;

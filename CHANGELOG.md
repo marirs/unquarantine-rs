@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- Rust MSRV to 1.88
+- CI Audit.yml
+
 ## 0.3.0
 
 Dependency overhaul for crates.io publishability + security hardening.
@@ -61,7 +66,9 @@ Edition 2024, MSRV 1.85.
 - Dropped the unused `'a` lifetime parameter from `UnQuarantine`.
 
 ### Vendors
-- Added **FortiClient** (`QUARF\0\0\0` magic; payload XOR-0xAB), the only vendor
+- Added **FortiClient** (`QUARF\0\0\0` magic; payload XOR-0xAB, plus the full
+  metadata sidecar — SHA-256, timestamp, file id, original filename, threat
+  name — as a second buffer), the only vendor
   DeXRAY supports that was previously missing.
 
 ### Allocation / zero-copy

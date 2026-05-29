@@ -1,6 +1,6 @@
 [package]
 name = "unquarantine"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Marirs <marirs@gmail.com>"]
 description = "Unquarantine/decrypt/extract quarantined files from ~40 AV products."
 keywords = ["unquarantine", "quarantine", "malware", "forensics"]
@@ -10,7 +10,7 @@ repository = "https://github.com/marirs/unquarantine-rs"
 readme = "README.md"
 exclude = ["data", ".github"]
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 
 [dependencies]
 # Library deps are pure-Rust and free of C/-sys crates.
