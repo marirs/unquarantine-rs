@@ -1,0 +1,46 @@
+name: Supply chain
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - ".github/workflows/audit.yml"
+  pull_request:
+    paths:
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+  schedule:
+    # Weekly, so newly-published RUSTSEC advisories surface even with no commits.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: cargo audit (RUSTSEC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: RUSTSEC advisory + yanked-crate scan
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  forbidden-deps:
+    name: no openssl / aws-lc backends
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Assert banned crypto backends are absent from the dep tree
+        run: |
+          set -euo pipefail
+          # Project policy: pure-Rust crypto only — never OpenSSL or aws-lc.
+          tree="$(cargo tree --all-features --prefix none --no-dedupe | awk '{print $1}' | sort -u)"
+          if echo "$tree" | grep -qiE '^(openssl|openssl-sys|aws-lc-rs|aws-lc-sys)$'; then
+            echo "::error::forbidden crypto backend pulled into dependency tree:"
+            echo "$tree" | grep -iE '^(openssl|openssl-sys|aws-lc-rs|aws-lc-sys)$'
+            exit 1
+          fi
+          echo "ok: no openssl / aws-lc in dependency tree"

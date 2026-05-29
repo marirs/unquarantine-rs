@@ -2,56 +2,247 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build artifacts for (e.g. v0.3.0). Must already exist."
+        required: true
 
 permissions:
-  contents: write
+  contents: write   # for creating GitHub releases + uploading assets
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    name: ${{ matrix.target }}
+  verify:
+    name: verify build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+      - run: cargo test --all-features
+
+  package-source:
+    name: package source + cargo .crate
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # `cargo package` builds the exact .crate file that would be uploaded
+      # to crates.io if/when we publish manually.
+      - name: Build cargo package
+        run: cargo package --allow-dirty --no-verify
+
+      - name: Stage source artifacts
+        run: |
+          tag="${{ steps.tag.outputs.tag }}"
+          mkdir -p release
+          cp target/package/unquarantine-*.crate "release/unquarantine-${tag}.crate"
+          src_name="unquarantine-${tag}-src"
+          git archive --format=tar.gz --prefix="${src_name}/" \
+            -o "release/${src_name}.tar.gz" HEAD
+          (cd release && \
+            for f in *.crate *.tar.gz; do
+              sha256sum "$f" > "$f.sha256"
+            done)
+          ls -la release
+
+      - name: Upload source artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unquarantine-source-artifacts
+          path: |
+            release/*.crate
+            release/*.tar.gz
+            release/*.sha256
+          if-no-files-found: error
+
+  build-cli:
+    name: build unquarantine — ${{ matrix.target }}
+    needs: verify
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: macos-latest
-            target: aarch64-apple-darwin
-          # macos-13 (Intel) runners are being retired; cross-compile the
-          # x86_64 target from the arm64 macos-latest runner instead.
-          - os: macos-latest
-            target: x86_64-apple-darwin
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rust + target
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v2
-      - name: Build CLI
-        run: cargo build --release --features cli --bin unquarantine --target ${{ matrix.target }}
 
-      - name: Package (unix)
-        if: runner.os != 'Windows'
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # Linux aarch64 needs a cross linker / sysroot. The simplest way that
+      # doesn't pull in `cross` (and Docker-in-Docker) is the apt
+      # gcc-aarch64-linux-gnu toolchain + a cargo config pointing at it.
+      - name: Install aarch64-linux cross toolchain
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          mkdir -p .cargo
+          cat >> .cargo/config.toml <<'EOF'
+          [target.aarch64-unknown-linux-gnu]
+          linker = "aarch64-linux-gnu-gcc"
+          EOF
+
+      - name: Determine tag
+        id: tag
         shell: bash
         run: |
-          bin="target/${{ matrix.target }}/release/unquarantine"
-          tar -C "$(dirname "$bin")" -czf "unquarantine-${{ matrix.target }}.tar.gz" "$(basename "$bin")"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Package (windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
+      - name: Build unquarantine (release)
+        run: cargo build --release --bin unquarantine --features cli --target ${{ matrix.target }}
+
+      - name: Stage binary
+        shell: bash
         run: |
-          $bin = "target/${{ matrix.target }}/release/unquarantine.exe"
-          Compress-Archive -Path $bin -DestinationPath "unquarantine-${{ matrix.target }}.zip"
+          tag="${{ steps.tag.outputs.tag }}"
+          target="${{ matrix.target }}"
+          mkdir -p release
+          if [[ "$target" == *windows* ]]; then
+            src="target/${target}/release/unquarantine.exe"
+            dst="release/unquarantine-${tag}-${target}.exe"
+          else
+            src="target/${target}/release/unquarantine"
+            dst="release/unquarantine-${tag}-${target}"
+          fi
+          cp "$src" "$dst"
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd release && sha256sum "$(basename "$dst")" > "$(basename "$dst").sha256")
+          else
+            (cd release && certutil -hashfile "$(basename "$dst")" SHA256 | \
+              grep -v ':' | head -1 | tr -d ' \r' > "$(basename "$dst").sha256")
+          fi
+          ls -la release
 
-      - name: Upload to release
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: unquarantine-${{ matrix.target }}
+          path: |
+            release/unquarantine-*
+            release/unquarantine-*.sha256
+          if-no-files-found: error
+
+  github-release:
+    name: create GitHub release
+    needs: [package-source, build-cli]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          tag="${{ steps.tag.outputs.tag }}"
+          previous=$(git describe --tags --abbrev=0 "${tag}^" 2>/dev/null || echo "")
+          {
+            echo "notes<<EOF"
+            if [ -n "$previous" ]; then
+              echo "## Changes since $previous"
+              echo
+              git log --pretty=format:"- %s (%h)" "${previous}..${tag}"
+            else
+              echo "## Initial release"
+              echo
+              git log --pretty=format:"- %s (%h)" "${tag}"
+            fi
+            echo
+            echo
+            echo "## Source"
+            echo
+            echo "- \`unquarantine-${tag}.crate\` — the cargo package archive (same bytes as crates.io)"
+            echo "- \`unquarantine-${tag}-src.tar.gz\` — plain git source tarball"
+            echo
+            echo "## CLI binaries"
+            echo
+            echo "| Platform              | Binary                                                |"
+            echo "|-----------------------|-------------------------------------------------------|"
+            echo "| Linux x86_64          | \`unquarantine-${tag}-x86_64-unknown-linux-gnu\`       |"
+            echo "| Linux aarch64         | \`unquarantine-${tag}-aarch64-unknown-linux-gnu\`      |"
+            echo "| macOS Intel (x86_64)  | \`unquarantine-${tag}-x86_64-apple-darwin\`            |"
+            echo "| macOS Apple Silicon   | \`unquarantine-${tag}-aarch64-apple-darwin\`           |"
+            echo "| Windows x86_64        | \`unquarantine-${tag}-x86_64-pc-windows-msvc.exe\`     |"
+            echo "| Windows aarch64       | \`unquarantine-${tag}-aarch64-pc-windows-msvc.exe\`    |"
+            echo
+            echo "Every artifact ships with a matching \`*.sha256\` checksum."
+            echo
+            echo "Publishing to crates.io is performed manually with \`cargo publish\` and is not part of this workflow."
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifact tree
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name 'unquarantine-*' \) -exec cp {} release/ \;
+          ls -la release
+
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            unquarantine-${{ matrix.target }}.tar.gz
-            unquarantine-${{ matrix.target }}.zip
-          fail_on_unmatched_files: false
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.tag }}
+          body: ${{ steps.notes.outputs.notes }}
+          files: release/*
+          draft: false
+          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
