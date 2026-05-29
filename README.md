@@ -1,5 +1,10 @@
 # UnQuarantine
 
+[![Crates.io](https://img.shields.io/crates/v/unquarantine.svg)](https://crates.io/crates/unquarantine)
+[![Documentation](https://docs.rs/unquarantine/badge.svg)](https://docs.rs/unquarantine)
+[![CI](https://github.com/marirs/unquarantine-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/marirs/unquarantine-rs/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/crates/l/unquarantine.svg)](LICENSE)
+
 Restore / decrypt / extract the original files that antivirus and security
 products place into quarantine. Given a quarantined file (or its bytes), the
 crate detects the producing vendor, reverses the obfuscation/encryption, and
