@@ -1,17 +1,16 @@
 use regex::Regex;
+use std::sync::LazyLock;
 
-lazy_static! {
-    pub static ref FILE_PATTERN: &'static str =
-        "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-    pub static ref NUM_PATTERN: Regex = Regex::new(r"-\d+").unwrap();
-    pub static ref DEFAULT_FILE_PATTERN: Regex = Regex::new(&FILE_PATTERN).unwrap();
-    pub static ref QDB_PATTERN: Regex = Regex::new(r"(^|[/\\])[0-9a-f]{32}").unwrap();
-    pub static ref MSE_PATTERN: Regex =
-        Regex::new(&[r"\{", &FILE_PATTERN, r"\}-.{1,}"].join("")).unwrap();
-    pub static ref GUID_PATTERN: Regex =
-        Regex::new(&[r"\{", &FILE_PATTERN, r"\}"].join("")).unwrap();
-    pub static ref GUID_DAT_PATTERN: Regex =
-        Regex::new(&[r"(^|[\/\\])", &FILE_PATTERN, r"\.dat"].join("")).unwrap();
-    pub static ref VIPRE_PATTERN: Regex =
-        Regex::new(&[r"\{", &FILE_PATTERN, r"\}_ENC2$"].join("")).unwrap();
-}
+const FILE_PATTERN: &str = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+
+pub static NUM_PATTERN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"-\d+").unwrap());
+pub static DEFAULT_FILE_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(FILE_PATTERN).unwrap());
+pub static QDB_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(^|[/\\])[0-9a-f]{32}").unwrap());
+pub static MSE_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(&format!(r"\{{{FILE_PATTERN}\}}-.{{1,}}")).unwrap());
+pub static GUID_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(&format!(r"\{{{FILE_PATTERN}\}}")).unwrap());
+pub static GUID_DAT_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(&format!(r"(^|[/\\]){FILE_PATTERN}\.dat")).unwrap());

@@ -10,8 +10,6 @@ pub enum Error {
     TryFromSliceError(#[from] std::array::TryFromSliceError),
     #[error("Utf8 error: {0}")]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
-    // #[error("Ole error: {0}")]
-    // OleError(#[from] ole::Error),
     #[error("Base64 error: {0}")]
     Base64Error(#[from] base64::DecodeError),
     #[error("Zip error: {0}")]
@@ -22,6 +20,10 @@ pub enum Error {
     InflateError(String),
     #[error("{0}: Cannot Un-quarantine file; are you sure its a quarantined file?")]
     CannotUnQuarantineFile(String),
-    #[error("Ole file error: {0}")]
-    OleError(#[from] ole::error::Error),
+    /// The input buffer was shorter than the parser required at the given step.
+    #[error("truncated input: not enough bytes for {0}")]
+    Truncated(&'static str),
+    /// A structural / sanity check on the parsed data failed.
+    #[error("invalid quarantine data: {0}")]
+    Invalid(&'static str),
 }

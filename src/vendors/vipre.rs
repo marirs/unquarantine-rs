@@ -1,4 +1,4 @@
-use crate::{utils::bytearray_xor, Result};
+use crate::{Result, utils::bytearray_xor};
 
 /// Vipre (<GUID>_ENC2)
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {

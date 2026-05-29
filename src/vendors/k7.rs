@@ -1,15 +1,11 @@
 use crate::{
-    error::Error,
-    utils::{bytearray_xor, unpack_i32},
     Result,
+    utils::{self, bytearray_xor, unpack_i32},
 };
 
 /// K7 Antivirus (<md5>.QNT)
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
-    let len = unpack_i32(&data[0x128..])? as usize;
-    if len > data.len() {
-        return Err(Error::CannotUnQuarantineFile("k7".to_string()));
-    }
-    let newdata = bytearray_xor(data[0x178..0x178 + len].to_vec(), 0xFF);
-    Ok(vec![newdata])
+    let len = unpack_i32(utils::tail(data, 0x128, "k7 length")?)? as usize;
+    let body = utils::slice(data, 0x178, len, "k7 body")?;
+    Ok(vec![bytearray_xor(body.to_vec(), 0xFF)])
 }

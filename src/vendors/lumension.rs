@@ -1,8 +1,8 @@
-use crate::{error::Error, Result};
+use crate::{Result, utils};
 
 /// Lumension LEMSS (lqf)
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
-    // WANT_GZIP
-    let dec2 = inflate::inflate_bytes(&data[32..]).map_err(Error::InflateError)?;
-    Ok(vec![dec2])
+    // raw DEFLATE payload after a 32-byte header
+    let body = utils::tail(data, 32, "lumension header")?;
+    Ok(vec![utils::inflate(body)?])
 }

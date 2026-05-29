@@ -1,11 +1,11 @@
 use crate::{
-    utils::{bytearray_xor, unpack_i32},
     Result,
+    utils::{self, bytearray_xor, unpack_i32},
 };
 
-/// "Avira QUA Files
+/// Avira QUA Files
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
-    let o2d = unpack_i32(&data[16..])? as usize;
-    let newdata = bytearray_xor(data[o2d..].to_vec(), 170);
-    Ok(vec![newdata])
+    let o2d = unpack_i32(utils::tail(data, 16, "avira offset")?)? as usize;
+    let body = utils::tail(data, o2d, "avira body")?;
+    Ok(vec![bytearray_xor(body.to_vec(), 170)])
 }

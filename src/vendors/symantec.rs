@@ -1,10 +1,13 @@
 use crate::{
-    error::Error,
-    utils::{blowfishit, bytearray_xor, unpack_i32, unpack_i64},
-    vendors::others,
     Result,
+    error::Error,
+    utils::{self, blowfishit, bytearray_xor, unpack_i32, unpack_i64},
+    vendors::others,
 };
-use std::convert::TryInto;
+use std::io::{Cursor, Read, copy};
+
+/// Per-entry cap on decompressed output, guarding against zip-bomb inputs.
+const MAX_DECOMPRESSED: u64 = 512 << 20; // 512 MiB
 
 /// Symantec Quarantine files (VBN), including from SEP on Linux
 pub fn ep_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
@@ -20,11 +23,11 @@ pub fn ep_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut decode_next_container = false;
     let mut xor_next_container = false;
     let mut has_header = true;
-    let mut binsize = 0;
-    let mut collectedsize = 0;
+    let mut binsize = 0_usize;
+    let mut collectedsize = 0_usize;
     let mut bindata = vec![];
     let mut iters = 0;
-    let mut lastlen = 0;
+    let mut lastlen = 0_i64;
 
     while iters < 20000 {
         iters += 1;
@@ -32,33 +35,44 @@ pub fn ep_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
         let mut extralen = tagdata.len();
         if code == 9 {
             if xor_next_container {
-                for i in 0..tagdata.len() {
-                    data[offset + 5 + i] ^= 0xFF;
+                let body_start = offset + 5;
+                let body_end = body_start
+                    .checked_add(tagdata.len())
+                    .ok_or(Error::Invalid("sep body range"))?;
+                if body_end > data.len() {
+                    return Err(Error::Invalid("sep body range"));
+                }
+                for b in &mut data[body_start..body_end] {
+                    *b ^= 0xFF;
                 }
                 if has_header {
-                    let headerlen_vec: &[u8; 4] =
-                        data[offset + 5 + 8..offset + 5 + 12].try_into()?;
-                    let headerlen = i32::from_le_bytes(*headerlen_vec) as usize;
-                    let binsize_vec: &[u8; 4] =
-                        data[offset + 5 + headerlen - 12..offset + 5 + headerlen - 8].try_into()?;
-                    let binsize = i32::from_le_bytes(*binsize_vec) as usize;
-                    collectedsize += tagdata.len() - headerlen;
-                    let binlen = if collectedsize > binsize {
-                        binsize
-                    } else {
-                        collectedsize
-                    } as usize;
-                    bindata.extend(
-                        data[offset + 5 + headerlen..offset + 5 + headerlen + binlen].to_vec(),
-                    );
+                    let headerlen =
+                        unpack_i32(utils::tail(&data, body_start + 8, "sep headerlen")?)? as i64;
+                    if headerlen < 12 {
+                        return Err(Error::Invalid("sep headerlen"));
+                    }
+                    let headerlen = headerlen as usize;
+                    let binsize_at = body_start
+                        .checked_add(headerlen)
+                        .and_then(|v| v.checked_sub(12))
+                        .ok_or(Error::Invalid("sep binsize offset"))?;
+                    binsize = unpack_i32(utils::tail(&data, binsize_at, "sep binsize")?)? as usize;
+                    collectedsize += tagdata.len().saturating_sub(headerlen);
+                    let binlen = collectedsize.min(binsize);
+                    let bin_start = body_start
+                        .checked_add(headerlen)
+                        .ok_or(Error::Invalid("sep bin start"))?;
+                    let chunk = utils::slice(&data, bin_start, binlen, "sep bin")?;
+                    bindata.extend_from_slice(chunk);
                     has_header = false;
                 } else {
                     let mut binlen = tagdata.len();
                     collectedsize += binlen;
                     if collectedsize > binsize {
-                        binlen -= collectedsize - binsize;
+                        binlen = binlen.saturating_sub(collectedsize - binsize);
                     }
-                    bindata.extend(data[offset + 5..offset + 5 + binlen].to_vec());
+                    let chunk = utils::slice(&data, body_start, binlen, "sep bin2")?;
+                    bindata.extend_from_slice(chunk);
                 }
             } else if decode_next_container {
                 extralen = 0;
@@ -66,19 +80,21 @@ pub fn ep_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
             } else if codeval == 0x10 || codeval == 0x8 {
                 if codeval == 0x8 {
                     xor_next_container = true;
-                    let lastlen_vec: &[u8; 8] = data[offset + 5..offset + 5 + 8].try_into()?;
-                    lastlen = i64::from_le_bytes(*lastlen_vec);
+                    lastlen = unpack_i64(utils::tail(&data, offset + 5, "sep lastlen")?)?;
                 } else {
                     xor_next_container = false;
                     decode_next_container = true;
                 }
             }
-        } else if code == 4 && xor_next_container && lastlen == codeval as i64 {
+        } else if code == 4 && xor_next_container && lastlen == codeval {
             binsize = codeval as usize;
             has_header = false;
         }
-        offset += length + extralen;
-        if offset == filesize {
+        offset = offset
+            .checked_add(length)
+            .and_then(|v| v.checked_add(extralen))
+            .ok_or(Error::Invalid("sep offset"))?;
+        if offset >= filesize {
             break;
         }
     }
@@ -87,21 +103,27 @@ pub fn ep_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
 
 /// Symantec ccSubSdk files: {GUID} files and submissions.idx
 pub fn cc_sub_sdk_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
-    Ok(vec![blowfishit(
-        &data[32..].to_vec(),
-        &data[16..32].to_vec(),
-    )?])
+    let body = utils::tail(data, 32, "symc body")?;
+    let key = utils::slice(data, 16, 16, "symc key")?;
+    Ok(vec![blowfishit(body, key)?])
 }
 
 /// Symantec Quarantine Index files (QBI)
 pub fn idx_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
-    let data = &data[0x30..];
+    let mut data = utils::tail(data, 0x30, "symc idx header")?;
     let mut res = vec![];
-    while data[..4] == vec![0x40, 0x99, 0xC6, 0x89] {
-        let len1 = unpack_i32(&data[24..])? as usize;
-        let _len2 = unpack_i32(&data[28..])? as usize;
-        let dec = blowfishit(&data[56..56 + len1].to_vec(), &data[40..40 + 16].to_vec())?;
-        res.push(dec);
+    while data.starts_with(&[0x40, 0x99, 0xC6, 0x89]) {
+        let len1 = unpack_i32(utils::tail(data, 24, "symc idx len1")?)? as usize;
+        let key = utils::slice(data, 40, 16, "symc idx key")?;
+        let body = utils::slice(data, 56, len1, "symc idx body")?;
+        res.push(blowfishit(body, key)?);
+        // Advance past this record (56-byte header + len1 body); guard against
+        // a zero-length record that would otherwise spin forever.
+        let next = 56_usize
+            .checked_add(len1)
+            .filter(|&n| n > 0)
+            .ok_or(Error::Invalid("symc idx record"))?;
+        data = utils::tail(data, next, "symc idx next")?;
     }
     Ok(res)
 }
@@ -114,20 +136,18 @@ pub fn qbd_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
 /// Symantec Quarantine files on MAC (quarantine.qtn)
 pub fn qtn_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut ress = vec![];
-    let mut zip =
-        zip::ZipArchive::new(std::io::BufReader::new(std::io::Cursor::new(data.to_vec())))?;
-
+    let mut zip = zip::ZipArchive::new(Cursor::new(data))?;
     for i in 0..zip.len() {
-        let mut file = zip.by_index(i)?;
+        let file = zip.by_index(i)?;
         let mut res: Vec<u8> = vec![];
-        std::io::copy(&mut file, &mut res)?;
+        copy(&mut file.take(MAX_DECOMPRESSED), &mut res)?;
         ress.push(res);
     }
     Ok(ress)
 }
 
 fn read_ep_tag(data: &[u8], offset: usize) -> Result<(u8, usize, i64, Vec<u8>)> {
-    let code = data[offset];
+    let code = *data.get(offset).ok_or(Error::Truncated("sep tag code"))?;
     let codeval;
     let mut retdata = vec![];
     let length;
@@ -135,20 +155,23 @@ fn read_ep_tag(data: &[u8], offset: usize) -> Result<(u8, usize, i64, Vec<u8>)> 
     match code {
         1 | 10 => {
             length = 2;
-            codeval = data[offset] as i64;
+            codeval = code as i64;
         }
         3 | 6 => {
             length = 5;
-            codeval = unpack_i32(&data[offset + 1..])? as i64;
+            codeval = unpack_i32(utils::tail(data, offset + 1, "sep tag i32")?)? as i64;
         }
         4 => {
             length = 9;
-            codeval = unpack_i64(&data[offset + 1..])?;
+            codeval = unpack_i64(utils::tail(data, offset + 1, "sep tag i64")?)?;
         }
         _ => {
             length = 5;
-            codeval = unpack_i32(&data[offset + 1..])? as i64;
-            retdata = data[offset + 5..offset + 5 + codeval as usize].to_vec();
+            codeval = unpack_i32(utils::tail(data, offset + 1, "sep tag len")?)? as i64;
+            if codeval < 0 {
+                return Err(Error::Invalid("sep tag len"));
+            }
+            retdata = utils::slice(data, offset + 5, codeval as usize, "sep tag body")?.to_vec();
         }
     }
     Ok((code, length, codeval, retdata))

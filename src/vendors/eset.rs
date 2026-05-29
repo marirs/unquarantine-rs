@@ -2,9 +2,9 @@ use crate::Result;
 
 /// ESET (NQF)
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
-    let mut newdata = vec![];
-    for i in 0..data.len() {
-        newdata.push((data[i] as i8 - 84) as u8 ^ 0xa5);
-    }
+    let newdata = data
+        .iter()
+        .map(|&b| (b as i8).wrapping_sub(84) as u8 ^ 0xa5)
+        .collect();
     Ok(vec![newdata])
 }

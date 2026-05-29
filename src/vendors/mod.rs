@@ -22,6 +22,8 @@ pub mod cmc;
 pub mod esafe;
 /// ESET (NQF)
 pub mod eset;
+/// Fortinet FortiClient (Magic@0='QUARF')
+pub mod fortinet;
 /// Fprot (TMP) (Magic@0='KSS')
 pub mod fprot;
 /// G-Data (Q) (Magic@0=0xCAFEBABE)

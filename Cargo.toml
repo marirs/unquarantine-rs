@@ -1,34 +1,48 @@
 [package]
 name = "unquarantine"
-version = "0.2.3"
+version = "0.3.0"
 authors = ["Marirs <marirs@gmail.com>"]
-description = "Unquarantine/decrypt/extract quarantined files."
-keywords = ["unquarantine", "quarantine"]
-repository = ""
-exclude = ["data", "examples"]
-edition = "2021"
+description = "Unquarantine/decrypt/extract quarantined files from ~40 AV products."
+keywords = ["unquarantine", "quarantine", "malware", "forensics"]
+categories = ["parsing", "cryptography"]
+license = "MIT"
+repository = "https://github.com/marirs/unquarantine-rs"
+readme = "README.md"
+exclude = ["data", ".github"]
+edition = "2024"
+rust-version = "1.85"
 
 [dependencies]
-base64 = "0.13.0"
-clap = { version = "3.0.7", features = ["cargo", "derive"]}
-crc = "2.1.0"
-rust-crypto = "0.2.36"
-inflate = "0.4.5"
-lazy_static = "1.4.0"
-maplit = "1.0.2"
-md-5 = "0.10.0"
-ole = { git = "https://github.com/marirs/ole-rs.git", branch = "master", default-features = false, features = ["blocking"] }
-regex = "1.5.4"
-thiserror = "1.0.30"
-zip = "0.5.13"
+# Library deps are pure-Rust and free of C/-sys crates.
+base64 = "0.22.1"
+blowfish = "0.10"
+cfb = "0.14"
+cipher = "0.5"
+crc = "3.4"
+md-5 = "0.11"
+miniz_oxide = "0.9"
+regex = "1.12"
+thiserror = "2.0.18"
+# default-features = false keeps zip pure-Rust (drops bzip2-sys / zstd-sys /
+# lzma); `deflate` uses the miniz_oxide backend. Traditional ZipCrypto
+# decryption is always available and needs no feature.
+zip = { version = "8", default-features = false, features = ["deflate"] }
+
+# CLI-only; pulled in solely by the `unquarantine` binary via the `cli` feature.
+clap = { version = "4", features = ["derive"], optional = true }
+
+[features]
+default = []
+cli = ["dep:clap"]
 
 [lib]
 name = "unquarantine"
 path = "src/lib.rs"
 
-[[example]]
+[[bin]]
 name = "unquarantine"
-path = "examples/main.rs"
+path = "src/main.rs"
+required-features = ["cli"]
 
 [profile.dev]
 opt-level = 3

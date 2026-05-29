@@ -1,13 +1,8 @@
-use crate::{utils::rc4_decrypt, Result};
+use crate::{Result, utils::rc4_decrypt};
 
 /// Amiti (IFC)
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
-    let x = b"AA79e10d15l6o2t8";
-    let mut key = vec![];
-    for k in 0..16 {
-        key.push(x[k as usize] ^ 0xA4);
-    }
-    Ok(vec![rc4_decrypt(&mut ksa(), &mut data.to_owned())])
+    Ok(vec![rc4_decrypt(&mut ksa(), data)])
 }
 
 fn ksa() -> Vec<u8> {
