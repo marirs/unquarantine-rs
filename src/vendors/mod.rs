@@ -28,9 +28,9 @@ pub mod fortinet;
 pub mod fprot;
 /// G-Data (Q) (Magic@0=0xCAFEBABE)
 pub mod gdata;
-/// K7 Antivirus (<md5>.QNT)
+/// K7 Antivirus (`<md5>`.QNT)
 pub mod k7;
-/// Kaspersky (KLQ, System Watcher's <md5>.bin)
+/// Kaspersky (KLQ, System Watcher's `<md5>`.bin)
 pub mod kaspersky;
 /// Lumension LEMSS (lqf)
 pub mod lumension;
@@ -40,9 +40,9 @@ pub mod malwarebytes;
 pub mod mcafee;
 /// Microsoft products
 pub mod microsoft;
-/// Panda <GUID> Zip files
+/// Panda `<GUID>` Zip files
 pub mod panda;
-/// QuickHeal <hash> files
+/// QuickHeal `<hash>` files
 pub mod quickheal;
 /// Sentinel One (MAL)
 pub mod sentinelone;
@@ -50,9 +50,9 @@ pub mod sentinelone;
 pub mod symantec;
 /// TrendMicro (Magic@0=A9 AC BD A7 which is a 'VSBX' string ^ 0xFF)
 pub mod trendmicro;
-/// Vipre (<GUID>_ENC2)
+/// Vipre (`<GUID>`_ENC2)
 pub mod vipre;
-/// Zemana <hash> files+quarantine.db
+/// Zemana `<hash>` files+quarantine.db
 pub mod zemana;
 
 /// All other different types of unquarantine methods

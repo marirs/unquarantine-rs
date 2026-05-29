@@ -72,7 +72,7 @@ pub fn av_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     Ok(vec![data[headerlen..body_end].to_vec()])
 }
 
-/// Kaspersky (System Watcher's <md5>.bin)
+/// Kaspersky (System Watcher's `<md5>`.bin)
 pub fn system_watcher_unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let newdata = data
         .iter()

@@ -34,8 +34,8 @@ use std::{ffi::OsStr, path::Path};
 /// * F-Prot (TMP) (Magic@0='KSS')
 /// * FortiClient (Magic@0='QUARF')
 /// * G-Data (Q) (Magic@0=0xCAFEBABE)
-/// * K7 Antivirus (<md5>.QNT)
-/// * Kaspersky (KLQ, System Watcher's <md5>.bin)
+/// * K7 Antivirus (`<md5>`.QNT)
+/// * Kaspersky (KLQ, System Watcher's `<md5>`.bin)
 /// * Lavasoft AdAware (BDQ) /BitDefender files really/
 /// * Lumension LEMSS (lqf)
 /// * MalwareBytes Data files (DATA) - 2 versions
@@ -44,7 +44,7 @@ use std::{ffi::OsStr, path::Path};
 /// * Microsoft Antimalware / Microsoft Security Essentials
 /// * Microsoft Defender PC (Magic@0=0B AD|D3 45) - D3 45 C5 99 metadata + 0B AD malicious content
 /// * Microsoft Defender Mac (Magic@0=75 6E)
-/// * Panda <GUID> Zip files
+/// * Panda `<GUID>` Zip files
 /// * Sentinel One (MAL)
 /// * Spybot - Search & Destroy 2 'recovery'
 /// * SUPERAntiSpyware (SDB)
@@ -56,9 +56,9 @@ use std::{ffi::OsStr, path::Path};
 /// * Total AV ({GUID}.dat) 'infected'
 /// * Total Defense (BDQ) /BitDefender files really/
 /// * TrendMicro (Magic@0=A9 AC BD A7 which is a 'VSBX' string ^ 0xFF)
-/// * QuickHeal <hash> files
-/// * Vipre (<GUID>_ENC2)
-/// * Zemana <hash> files+quarantine.db
+/// * QuickHeal `<hash>` files
+/// * Vipre (`<GUID>`_ENC2)
+/// * Zemana `<hash>` files+quarantine.db
 #[derive(Clone)]
 pub struct UnQuarantine {
     /// The detected Vendor of the quarantined file

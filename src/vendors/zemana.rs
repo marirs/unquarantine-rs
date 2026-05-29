@@ -1,6 +1,6 @@
 use crate::{Result, utils::rc4_decrypt};
 
-/// Zemana <hash> files+quarantine.db
+/// Zemana `<hash>` files+quarantine.db
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     Ok(vec![rc4_decrypt(&mut ksa(), data)])
 }

@@ -12,7 +12,7 @@ const KEY: &[u8] = &[
     0x3D, 0xD8, 0x22, 0x66, 0x65, 0x16, 0xE3, 0xB8, 0xC5, 0xD6, 0x18, 0x71, 0xE7, 0x19, 0xE0, 0x5A,
 ];
 
-/// Panda <GUID> Zip files
+/// Panda `<GUID>` Zip files
 pub fn unquarantine(data: &[u8]) -> Result<Vec<Vec<u8>>> {
     let mut ress = vec![];
     let mut zip = ZipArchive::new(Cursor::new(data))?;
