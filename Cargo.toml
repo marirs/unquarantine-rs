@@ -24,9 +24,9 @@ miniz_oxide = "0.9"
 regex = "1.12"
 thiserror = "2.0.18"
 # default-features = false keeps zip pure-Rust (drops bzip2-sys / zstd-sys /
-# lzma); `deflate` uses the miniz_oxide backend. Traditional ZipCrypto
+# lzma); `deflate` uses a pure-Rust backend. Traditional ZipCrypto
 # decryption is always available and needs no feature.
-zip = { version = "8", default-features = false, features = ["deflate"] }
+zip = { version = "9.2", default-features = false, features = ["deflate"] }
 
 # CLI-only; pulled in solely by the `unquarantine` binary via the `cli` feature.
 clap = { version = "4", features = ["derive"], optional = true }
