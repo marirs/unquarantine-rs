@@ -62,9 +62,9 @@ pub fn blowfishit(data: &[u8], key: &[u8]) -> Result<Vec<u8>> {
     let cipher: Blowfish =
         Blowfish::new_from_slice(key).map_err(|_| Error::Invalid("blowfish key length"))?;
     let mut out = Vec::with_capacity(data.len());
-    for chunk in data.chunks_exact(8) {
-        let mut block =
-            Block::<Blowfish>::try_from(chunk).map_err(|_| Error::Invalid("blowfish block"))?;
+    for chunk in data.as_chunks::<8>().0 {
+        let mut block = Block::<Blowfish>::try_from(chunk.as_slice())
+            .map_err(|_| Error::Invalid("blowfish block"))?;
         cipher.decrypt_block(&mut block);
         out.extend_from_slice(&block);
     }
