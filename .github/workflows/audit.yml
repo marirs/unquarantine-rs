@@ -19,9 +19,9 @@ on:
 jobs:
   audit:
     name: cargo audit (RUSTSEC)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: RUSTSEC advisory + yanked-crate scan
         uses: rustsec/audit-check@v2
         with:
@@ -29,9 +29,9 @@ jobs:
 
   forbidden-deps:
     name: no openssl / aws-lc backends
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - name: Assert banned crypto backends are absent from the dep tree
         run: |
