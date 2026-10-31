@@ -11,6 +11,7 @@ on:
     paths:
       - "**/Cargo.toml"
       - "**/Cargo.lock"
+      - ".github/workflows/audit.yml"
   schedule:
     # Weekly, so newly-published RUSTSEC advisories surface even with no commits.
     - cron: "0 6 * * 1"
@@ -22,6 +23,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Resolve the library dependency lockfile for auditing
+        run: cargo generate-lockfile
       - name: RUSTSEC advisory + yanked-crate scan
         uses: rustsec/audit-check@v2
         with:
